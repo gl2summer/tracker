@@ -10,6 +10,7 @@
 #include <QToolButton>
 #include <QClipboard>
 #include <QStatusBar>
+#include <QMessageBox>
 
 #define TWPATHLIST_INDEX_PATH       0
 #define TWPATHLIST_INDEX_DISTANCE   1
@@ -41,7 +42,19 @@ MainWindow::MainWindow(QWidget *parent)
         releaseKeyboard();
     });
 
+#if defined (Q_OS_WIN)
     mapView->load(QUrl(qApp->applicationDirPath()+ "/map/mapPreview.html"));
+#elif defined (Q_OS_DARWIN)
+    QByteArray html;
+    QFile file(qApp->applicationDirPath()+ "/map/mapPreview_mac.html");
+    if(file.open(QIODevice::ReadOnly)) {
+        mapView->setHtml(file.readAll());
+        file.close();
+    } else {
+        QMessageBox::warning(this, "error", "map load error!");
+    }
+#endif
+
     mapView->show();
 
     ui->twPathList->setSelectionBehavior(QAbstractItemView::SelectRows);

@@ -40,4 +40,9 @@ DISTFILES += \
 
 RESOURCES +=
 
-RC_ICONS = app.ico
+win32:{
+    RC_ICONS = app.ico
+}
+unix: {
+    ICON = app.icns
+}
