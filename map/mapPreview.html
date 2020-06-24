@@ -54,7 +54,13 @@
     function searchDrivingRoute(startPlace, endPlace, autoClear, reslutCallback) {
         //if((typeof startPlace != 'string') || (typeof endPlace != 'string') || (typeof reslutCallback != 'function'))
 
-        var drivingRoute = new BMap.DrivingRoute(map, {renderOptions:{map: map, autoViewport: true}});
+        var drivingRoute = new BMap.DrivingRoute(map, {
+            renderOptions: {
+                    map: map,
+                    autoViewport: true
+                },
+            policy: BMAP_DRIVING_POLICY_AVOID_HIGHWAYS
+        });
 
         drivingRoute.setSearchCompleteCallback(function(results) {
             if(reslutCallback != null) {

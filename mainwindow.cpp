@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
         releaseKeyboard();
     });
 
-    mapView->load(QUrl(qApp->applicationDirPath()+ "/mapPreview.html"));
+    mapView->load(QUrl(qApp->applicationDirPath()+ "/map/mapPreview.html"));
     mapView->show();
 
     ui->twPathList->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -150,8 +150,9 @@ void MainWindow::on_actionImportPathPoints_triggered()
                 tbTrace->setText(QString::fromLocal8Bit("路线规划"));
                 tbTrace->setAutoRaise(true);
                 //tbTrace->setStyleSheet("*::hover{background-color: lightblue}\n");
-                connect(tbTrace, &QToolButton::clicked, [=](){
-                    queryMapDriveRoute(rowFlag, line, QStringLiteral(","));
+                connect(tbTrace, &QToolButton::clicked, [=]() {
+                    QString places = ui->twPathList->item(newRow, TWPATHLIST_INDEX_PATH)->text();
+                    queryMapDriveRoute(rowFlag, places, QStringLiteral(","));
                 });
                 ui->twPathList->setCellWidget(newRow, TWPATHLIST_INDEX_TRACE, tbTrace);
             }while(true);
