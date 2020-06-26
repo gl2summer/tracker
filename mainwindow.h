@@ -27,13 +27,26 @@ public slots:
     void queryMapDriveRoute(QString usrData, QString paths, QString seq);
 
 private slots:
+    void updateTotalDistanceAndDuration();
+    void addPathToList(QString paths);
+    void removeSelectedPathFromList();
+    void addPathToListFromFile();
+
     void on_actionImportPathPoints_triggered();
 
     void on_actionExportPathDistances_triggered();
+
+    void on_pbAddPathToList_clicked();
+
+    void on_pbImportSites_clicked();
 
 private:
     Ui::MainWindow *ui;
 
     QWebEngineView *mapView;
+
+    // QObject interface
+public:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 };
 #endif // MAINWINDOW_H

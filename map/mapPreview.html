@@ -5,31 +5,35 @@
         <script type='text/javascript' src='./qwebchannel.js'></script>
         <script type='text/javascript' src='http://api.map.baidu.com/api?v=1.2&ak=gtUDcX7BrzZADD2dWMFE1RgF6IkL3t2I'></script>
     </head>
+	<style type="text/css">
+	html,body { height: 100%; padding: 0; margin: 0; }
+	.header { height: 100px; background: #BBE8F2; position: absolute; top: 0 ; left: 0 ; width: 100%; }
+	.content { height: 100%; box-sizing: border-box; border-top:100px solid transparent; background: #D9C666;}
+	</style>
 
     <body>
-        <div>
-            <div>
-                <script>
-                    function onDrive() {
-                        map.clearOverlays();
-                        var startPlace = document.getElementById('startInput').value;
-                        var endPlace = document.getElementById("endInput").value;
-                        searchDrivingRoute(startPlace, endPlace, false, function(success, results) {
-                            if(success) {
-                                document.getElementById("places").innerText = startPlace + ', ' + endPlace;
-                                document.getElementById("result").innerText = '总共：' + results.getPlan(0).getDistance() + ', 需要：' + results.getPlan(0).getDuration();
-                            }
-                        });
-                    }
-                </script>
+        <div class="header">
+			<script>
+				function onDrive() {
+					map.clearOverlays();
+					var startPlace = document.getElementById('startInput').value;
+					var endPlace = document.getElementById('endInput').value;
+					searchDrivingRoute(startPlace, endPlace, false, function(success, results) {
+						if(success) {
+							document.getElementById("places").innerText = startPlace + ', ' + endPlace;
+							document.getElementById("result").innerText = '总共：' + results.getPlan(0).getDistance() + ', 需要：' + results.getPlan(0).getDuration();
+						}
+					});
+				}
+			</script>
 
-                从&nbsp;<input id="startInput" type="text" value="广州体育中心"/>&nbsp;到&nbsp;<input id="endInput" type="text" value="广州火车站"/>&nbsp;&nbsp;<input type="button" value="路线规划" onclick="onDrive()"/>
-                <div id="result">&nbsp;</div>
-                <div id="places">&nbsp;</div>
-            </div>
+			从&nbsp;<input id="startInput" type="text" value="广州从化汽车站"/>&nbsp;到&nbsp;<input id="endInput" type="text" value="广州火车站"/>&nbsp;&nbsp;<input type="button" value="路线规划" onclick="onDrive()"/>
+			<div id="result">&nbsp;</div>
+			<div id="places">&nbsp;</div>
         </div>
-        <div id="mapContainer" style="width:600px;height:480px;top:2px;"></div>
-        <div id="routePanel" style="position:absolute;left:600px;top:2px;"></div>
+		<div class="content">
+			<div id="mapContainer" style="height: 100%;"></div>
+		</div>
     </body>
 
 </html>
@@ -59,7 +63,7 @@
                     map: map,
                     autoViewport: true
                 },
-            policy: BMAP_DRIVING_POLICY_AVOID_HIGHWAYS
+            policy: BMAP_DRIVING_POLICY_LEAST_TIME
         });
 
         drivingRoute.setSearchCompleteCallback(function(results) {
@@ -149,8 +153,11 @@
 
                             totalDistance += results.getPlan(0).getDistance(false); // unit: meter
                             totalDuration += results.getPlan(0).getDuration(false); // unit: second
-                        }
-                        searchNextDrivingRoute(++i);
+							searchNextDrivingRoute(++i);
+                        } else {
+							map.clearOverlays();
+							window.core.updateMapDriveRoute(usrData, false, 0, 0);
+						}
                     });
                 } else {
                     map.clearOverlays();

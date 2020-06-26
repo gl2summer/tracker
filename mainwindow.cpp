@@ -11,6 +11,7 @@
 #include <QClipboard>
 #include <QStatusBar>
 #include <QMessageBox>
+#include <QKeyEvent>
 
 #define TWPATHLIST_INDEX_PATH       0
 #define TWPATHLIST_INDEX_DISTANCE   1
@@ -37,9 +38,13 @@ MainWindow::MainWindow(QWidget *parent)
         grabKeyboard();
     });
 
-    connect(mapView, &QWebEngineView::loadFinished, [=](){
+    connect(mapView, &QWebEngineView::loadFinished, [=](bool ok){
         releaseMouse();
         releaseKeyboard();
+
+        if(!ok) {
+            mapView->reload();
+        }
     });
 
 #if defined (Q_OS_WIN)
@@ -63,6 +68,8 @@ MainWindow::MainWindow(QWidget *parent)
     hvPathList->setSectionResizeMode(TWPATHLIST_INDEX_DISTANCE, QHeaderView::ResizeToContents);
     hvPathList->setSectionResizeMode(TWPATHLIST_INDEX_DURATION, QHeaderView::ResizeToContents);
     hvPathList->setSectionResizeMode(TWPATHLIST_INDEX_TRACE, QHeaderView::ResizeToContents);
+    ui->twPathList->installEventFilter(this);
+    connect(ui->twPathList, &QTableWidget::cellChanged, this, &MainWindow::updateTotalDistanceAndDuration);
 
     connect(ui->pbCopyTotal, &QPushButton::clicked, [=]() {
         QString distanceAndDuration = QString::fromLocal8Bit("总共：%1,%2").arg(ui->leTotalDistance->text()).arg(ui->leTotalDuration->text());
@@ -94,6 +101,20 @@ void MainWindow::updateMapMousePosition(QString lon, QString lat)
     }
 }
 
+void MainWindow::updateTotalDistanceAndDuration()
+{
+    double totalDis = 0;
+    double totalDur = 0;
+    for(int i=0; i<ui->twPathList->rowCount(); i++) {
+        QTableWidgetItem *disItem = ui->twPathList->item(i, TWPATHLIST_INDEX_DISTANCE);
+        QTableWidgetItem *durItem = ui->twPathList->item(i, TWPATHLIST_INDEX_DURATION);
+        totalDis += (disItem != nullptr) ? disItem->text().remove(QString::fromLocal8Bit("公里")).toDouble() : 0.0;
+        totalDur += (durItem != nullptr) ? durItem->text().remove(QString::fromLocal8Bit("小时")).toDouble() : 0.0;
+    }
+    ui->leTotalDistance->setText(QString::fromLocal8Bit("%1公里").arg(totalDis));
+    ui->leTotalDuration->setText(QString::fromLocal8Bit("%1小时").arg(totalDur));
+}
+
 void MainWindow::updateMapDriveRoute(QString usrData, bool hasResult, QString distance, QString duration)
 {
     releaseMouse();
@@ -102,21 +123,9 @@ void MainWindow::updateMapDriveRoute(QString usrData, bool hasResult, QString di
     qDebug() << usrData << "result:" << hasResult << "distance:" << distance << "duration:" << duration;
     if(usrData.startsWith(TRACK_USR_DATA_TWPATHLIST)) {
         int rowNum = usrData.remove(TRACK_USR_DATA_TWPATHLIST).toInt();
-        if(rowNum >= 0) {
+        if((hasResult) && (rowNum >= 0)) {
             ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DISTANCE)->setText(QString::fromLocal8Bit("%1公里").arg(distance.toInt()/1000.0));
             ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DURATION)->setText(QString::fromLocal8Bit("%1小时").arg(duration.toInt()/3600.0));
-
-            double totalDis = 0;
-            double totalDur = 0;
-            for(int i=0; i<ui->twPathList->rowCount(); i++) {
-                QString dis = ui->twPathList->item(i, TWPATHLIST_INDEX_DISTANCE)->text().remove(QString::fromLocal8Bit("公里"));
-                QString dur = ui->twPathList->item(i, TWPATHLIST_INDEX_DURATION)->text().remove(QString::fromLocal8Bit("小时"));
-
-                totalDis += dis.toDouble();
-                totalDur += dur.toDouble();
-            }
-            ui->leTotalDistance->setText(QString::fromLocal8Bit("%1公里").arg(totalDis));
-            ui->leTotalDuration->setText(QString::fromLocal8Bit("%1小时").arg(totalDur));
         }
     }
 }
@@ -128,7 +137,46 @@ void MainWindow::queryMapDriveRoute(QString usrData, QString paths, QString seq)
     emit getMapDriveRoutes(usrData, paths, seq);
 }
 
-void MainWindow::on_actionImportPathPoints_triggered()
+void MainWindow::addPathToList(QString paths)
+{
+    if(paths.isEmpty()) {
+        return ;
+    }
+
+    int newRow = ui->twPathList->rowCount();
+    ui->twPathList->setRowCount(newRow+1);
+    QString rowFlag = QString(TRACK_USR_DATA_TWPATHLIST) + QString::number(newRow);
+
+    QString line = QString(paths).trimmed();
+    QTableWidgetItem *itemPath = new QTableWidgetItem(line);
+    itemPath->setData(Qt::UserRole, rowFlag);
+    ui->twPathList->setItem(newRow, TWPATHLIST_INDEX_PATH, itemPath);
+
+    ui->twPathList->setItem(newRow, TWPATHLIST_INDEX_DISTANCE, new QTableWidgetItem());
+    ui->twPathList->setItem(newRow, TWPATHLIST_INDEX_DURATION, new QTableWidgetItem());
+
+    QToolButton *tbTrace = new QToolButton(ui->twPathList);
+    tbTrace->setText(QString::fromLocal8Bit("路线规划"));
+    tbTrace->setAutoRaise(true);
+    //tbTrace->setStyleSheet("*::hover{background-color: lightblue}\n");
+    connect(tbTrace, &QToolButton::clicked, [=]() {
+        QString places = ui->twPathList->item(newRow, TWPATHLIST_INDEX_PATH)->text();
+        queryMapDriveRoute(rowFlag, places, QStringLiteral(","));
+    });
+    ui->twPathList->setCellWidget(newRow, TWPATHLIST_INDEX_TRACE, tbTrace);
+}
+
+void MainWindow::removeSelectedPathFromList()
+{
+    for(int i=ui->twPathList->rowCount()-1; i>=0; --i) {
+        if(ui->twPathList->item(i,0)->isSelected()) {
+            ui->twPathList->removeRow(i);
+            emit ui->twPathList->cellChanged(i, 0);
+        }
+    }
+}
+
+void MainWindow::addPathToListFromFile()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open"));
     if(!fileName.isEmpty())
@@ -142,40 +190,49 @@ void MainWindow::on_actionImportPathPoints_triggered()
             file.seek(0);
             QByteArray aline;
             do{
-                aline = file.readLine();
-                if(aline.isEmpty()) {
-                    break;
-                }
-
-                int newRow = ui->twPathList->rowCount();
-                ui->twPathList->setRowCount(newRow+1);
-                QString rowFlag = QString(TRACK_USR_DATA_TWPATHLIST) + QString::number(newRow);
-
-                QString line = QString(aline).trimmed();
-                QTableWidgetItem *itemPath = new QTableWidgetItem(line);
-                itemPath->setData(Qt::UserRole, rowFlag);
-                ui->twPathList->setItem(newRow, TWPATHLIST_INDEX_PATH, itemPath);
-
-                ui->twPathList->setItem(newRow, TWPATHLIST_INDEX_DISTANCE, new QTableWidgetItem());
-                ui->twPathList->setItem(newRow, TWPATHLIST_INDEX_DURATION, new QTableWidgetItem());
-
-                QToolButton *tbTrace = new QToolButton(ui->twPathList);
-                tbTrace->setText(QString::fromLocal8Bit("路线规划"));
-                tbTrace->setAutoRaise(true);
-                //tbTrace->setStyleSheet("*::hover{background-color: lightblue}\n");
-                connect(tbTrace, &QToolButton::clicked, [=]() {
-                    QString places = ui->twPathList->item(newRow, TWPATHLIST_INDEX_PATH)->text();
-                    queryMapDriveRoute(rowFlag, places, QStringLiteral(","));
-                });
-                ui->twPathList->setCellWidget(newRow, TWPATHLIST_INDEX_TRACE, tbTrace);
-            }while(true);
+                addPathToList(file.readLine());
+            }while(file.pos() < file.size());
 
             file.close();
         }
     }
 }
+void MainWindow::on_actionImportPathPoints_triggered()
+{
+    addPathToListFromFile();
+}
 
 void MainWindow::on_actionExportPathDistances_triggered()
 {
 
+}
+
+void MainWindow::on_pbAddPathToList_clicked()
+{
+    QString sites = ui->teTempPaths->toPlainText();
+    if(sites.isEmpty()) {
+        return ;
+    }
+
+    sites = sites.trimmed();
+    sites.replace(QRegExp("(\r|\n)+"), ",");
+
+    addPathToList(sites);
+}
+
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event)
+{
+    if((watched == ui->twPathList) && (event->type() == QEvent::KeyRelease)) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        int keyValue = keyEvent->key();
+        if((keyValue == Qt::Key_Backspace) || (keyValue == Qt::Key_Delete)) {
+            removeSelectedPathFromList();
+        }
+    }
+}
+
+void MainWindow::on_pbImportSites_clicked()
+{
+    addPathToListFromFile();
 }
