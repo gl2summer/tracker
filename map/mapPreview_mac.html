@@ -495,7 +495,7 @@ if (typeof module === 'object') {
                     map: map,
                     autoViewport: true
                 },
-            policy: BMAP_DRIVING_POLICY_LEAST_TIME
+            /*policy: BMAP_DRIVING_POLICY_LEAST_TIME*/
         });
 
         drivingRoute.setSearchCompleteCallback(function(results) {
@@ -564,8 +564,8 @@ if (typeof module === 'object') {
             var paths = [];
             var endpoints = [];
 
-            var totalDistance = 0;
-            var totalDuration = 0;
+            var distances = [];
+            var durations = [];
             function searchNextDrivingRoute(i) {
                 if(i <= placeList.length-2) {
                     var startPlace = placeList[i].trim();
@@ -583,13 +583,14 @@ if (typeof module === 'object') {
 
                             paths.push(results.getPlan(0).getRoute(0).getPath());
 
-                            totalDistance += results.getPlan(0).getDistance(false); // unit: meter
-                            totalDuration += results.getPlan(0).getDuration(false); // unit: second
-							searchNextDrivingRoute(++i);
+                            distances.push(results.getPlan(0).getDistance(false));
+                            durations.push(results.getPlan(0).getDuration(false));
+
+                            searchNextDrivingRoute(++i);
                         } else {
-							map.clearOverlays();
-							window.core.updateMapDriveRoute(usrData, false, 0, 0);
-						}
+                            map.clearOverlays();
+                            window.core.updateMapDriveRoute(usrData, false, 0, 0);
+                        }
                     });
                 } else {
                     map.clearOverlays();
@@ -598,19 +599,22 @@ if (typeof module === 'object') {
                     for(var i=0; i<endpoints.length; i++) {
 
                         map.addOverlay(new BMap.Marker(endpoints[i].resultPoi.point));
-                        map.addOverlay(new BMap.Label(endpoints[i].place, {offset: new BMap.Size(0, 0), position: endpoints[i].resultPoi.point}));
+                        map.addOverlay(new BMap.Label(endpoints[i].place, {offset: new BMap.Size(0, Math.floor(Math.random()*30)), position: endpoints[i].resultPoi.point}));
 
                         viewPortPoints.push(endpoints[i].resultPoi.point);
                     }
 
                     for(var i=0; i<paths.length; i++) {
-                        var polyline = new BMap.Polyline(paths[i]);
+                        var polyline = new BMap.Polyline(paths[i], {
+                            strokeColor: (i%2 > 0) ? 'magenta' : 'green',
+                            strokeOpacity: 0.8,
+                        });
                         map.addOverlay(polyline);
                     }
 
                     map.setViewport(viewPortPoints);
 
-                    window.core.updateMapDriveRoute(usrData, (totalDistance > 0), totalDistance, totalDuration);
+                    window.core.updateMapDriveRoute(usrData, true, distances.toString(), durations.toString());
                 }
             }
             searchNextDrivingRoute(0);

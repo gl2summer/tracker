@@ -23,12 +23,12 @@ signals:
 
 public slots:
     void updateMapMousePosition(QString lon, QString lat);
-    void updateMapDriveRoute(QString usrData, bool hasResult, QString distance, QString duration);
+    void updateMapDriveRoute(QString usrData, bool success, QString distances, QString durations);
     void queryMapDriveRoute(QString usrData, QString paths, QString seq);
 
 private slots:
     void updateTotalDistanceAndDuration();
-    void addPathToList(QString paths);
+    void addPathToList(QString paths, bool query=false);
     void removeSelectedPathFromList();
     void addPathToListFromFile();
 
@@ -39,6 +39,8 @@ private slots:
     void on_pbAddPathToList_clicked();
 
     void on_pbImportSites_clicked();
+
+    void on_pbAddPathToListAndQuery_clicked();
 
 private:
     Ui::MainWindow *ui;

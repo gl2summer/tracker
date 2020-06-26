@@ -115,17 +115,40 @@ void MainWindow::updateTotalDistanceAndDuration()
     ui->leTotalDuration->setText(QString::fromLocal8Bit("%1小时").arg(totalDur));
 }
 
-void MainWindow::updateMapDriveRoute(QString usrData, bool hasResult, QString distance, QString duration)
+void MainWindow::updateMapDriveRoute(QString usrData, bool success, QString distances, QString durations)
 {
     releaseMouse();
     releaseKeyboard();
 
-    qDebug() << usrData << "result:" << hasResult << "distance:" << distance << "duration:" << duration;
+    qDebug() << usrData << "result:" << success << "distance:" << distances << "duration:" << durations;
+
+
     if(usrData.startsWith(TRACK_USR_DATA_TWPATHLIST)) {
         int rowNum = usrData.remove(TRACK_USR_DATA_TWPATHLIST).toInt();
-        if((hasResult) && (rowNum >= 0)) {
-            ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DISTANCE)->setText(QString::fromLocal8Bit("%1公里").arg(distance.toInt()/1000.0));
-            ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DURATION)->setText(QString::fromLocal8Bit("%1小时").arg(duration.toInt()/3600.0));
+        if((success) && (rowNum >= 0)) {
+
+            QTableWidgetItem *disItem = ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DISTANCE);
+            disItem->setToolTip(distances);
+
+            double totalDistance = 0.0;
+            QStringList distancesList = distances.split(',');
+            qDebug() << "distancesList:" << distancesList;
+            for(QString dis : distancesList) {
+                totalDistance += dis.toDouble();
+            }
+            disItem->setText(QString::fromLocal8Bit("%1公里").arg(totalDistance/1000.0));
+
+            QTableWidgetItem *durItem = ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DURATION);
+            durItem->setToolTip(durations);
+
+            double totalDuration = 0.0;
+            QStringList durationList = durations.split(',');
+            qDebug() << "durationList:" << durationList;
+            for(QString dur : durationList) {
+                totalDuration += dur.toDouble();
+            }
+
+            durItem->setText(QString::fromLocal8Bit("%1小时").arg(totalDuration/3600.0));
         }
     }
 }
@@ -137,7 +160,7 @@ void MainWindow::queryMapDriveRoute(QString usrData, QString paths, QString seq)
     emit getMapDriveRoutes(usrData, paths, seq);
 }
 
-void MainWindow::addPathToList(QString paths)
+void MainWindow::addPathToList(QString paths, bool query)
 {
     if(paths.isEmpty()) {
         return ;
@@ -156,7 +179,7 @@ void MainWindow::addPathToList(QString paths)
     ui->twPathList->setItem(newRow, TWPATHLIST_INDEX_DURATION, new QTableWidgetItem());
 
     QToolButton *tbTrace = new QToolButton(ui->twPathList);
-    tbTrace->setText(QString::fromLocal8Bit("路线规划"));
+    tbTrace->setText(QString::fromLocal8Bit("规划路线"));
     tbTrace->setAutoRaise(true);
     //tbTrace->setStyleSheet("*::hover{background-color: lightblue}\n");
     connect(tbTrace, &QToolButton::clicked, [=]() {
@@ -164,6 +187,10 @@ void MainWindow::addPathToList(QString paths)
         queryMapDriveRoute(rowFlag, places, QStringLiteral(","));
     });
     ui->twPathList->setCellWidget(newRow, TWPATHLIST_INDEX_TRACE, tbTrace);
+
+    if(query) {
+        tbTrace->animateClick();
+    }
 }
 
 void MainWindow::removeSelectedPathFromList()
@@ -190,7 +217,7 @@ void MainWindow::addPathToListFromFile()
             file.seek(0);
             QByteArray aline;
             do{
-                addPathToList(file.readLine());
+                addPathToList(file.readLine(), false);
             }while(file.pos() < file.size());
 
             file.close();
@@ -217,9 +244,26 @@ void MainWindow::on_pbAddPathToList_clicked()
     sites = sites.trimmed();
     sites.replace(QRegExp("(\r|\n)+"), ",");
 
-    addPathToList(sites);
+    addPathToList(sites, false);
 }
 
+void MainWindow::on_pbAddPathToListAndQuery_clicked()
+{
+    QString sites = ui->teTempPaths->toPlainText();
+    if(sites.isEmpty()) {
+        return ;
+    }
+
+    sites = sites.trimmed();
+    sites.replace(QRegExp("(\r|\n)+"), ",");
+
+    addPathToList(sites, true);
+}
+
+void MainWindow::on_pbImportSites_clicked()
+{
+    addPathToListFromFile();
+}
 
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
@@ -228,11 +272,9 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
         int keyValue = keyEvent->key();
         if((keyValue == Qt::Key_Backspace) || (keyValue == Qt::Key_Delete)) {
             removeSelectedPathFromList();
+            return true;
         }
     }
+    return QMainWindow::eventFilter(watched, event);
 }
 
-void MainWindow::on_pbImportSites_clicked()
-{
-    addPathToListFromFile();
-}
