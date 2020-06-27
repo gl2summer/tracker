@@ -3,39 +3,39 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <script type='text/javascript' src='./qwebchannel.js'></script>
-        <script type='text/javascript' src='http://api.map.baidu.com/api?v=1.2&ak=gtUDcX7BrzZADD2dWMFE1RgF6IkL3t2I'></script>
+        <script type='text/javascript' src='http://api.map.baidu.com/api?v=1.3&ak=gtUDcX7BrzZADD2dWMFE1RgF6IkL3t2I'></script>
     </head>
-	<style type="text/css">
-	html,body { height: 100%; padding: 0; margin: 0; }
-	.header { height: 100px; background: #BBE8F2; position: absolute; top: 0 ; left: 0 ; width: 100%; }
-	.content { height: 100%; box-sizing: border-box; border-top:100px solid transparent; background: #D9C666;}
-	</style>
+
+    <style type="text/css">
+        html,body { height: 100%; padding: 0; margin: 0; font-size: 11px}
+        .header { height: 100px; background: #BBE8F2; position: absolute; top: 0 ; left: 0 ; width: 100%; }
+        .content { height: 100%; box-sizing: border-box; border-top:100px solid transparent; background: #D9C666;}
+    </style>
 
     <body>
         <div class="header">
-			<script>
-				function onDrive() {
-					map.clearOverlays();
-					var startPlace = document.getElementById('startInput').value;
-					var endPlace = document.getElementById('endInput').value;
-					searchDrivingRoute(startPlace, endPlace, false, function(success, results) {
-						if(success) {
-							document.getElementById("places").innerText = startPlace + ', ' + endPlace;
-							document.getElementById("result").innerText = '总共：' + results.getPlan(0).getDistance() + ', 需要：' + results.getPlan(0).getDuration();
-						}
-					});
-				}
-			</script>
+            <script>
+                function onDrive() {
+                    map.clearOverlays();
+                    var startPlace = document.getElementById('startInput').value;
+                    var endPlace = document.getElementById('endInput').value;
+                    searchDrivingRoute(startPlace, endPlace, false, function(success, results) {
+                        if(success) {
+                            document.getElementById("places").innerText = startPlace + ', ' + endPlace;
+                            document.getElementById("result").innerText = '总共：' + results.getPlan(0).getDistance() + ', 需要：' + results.getPlan(0).getDuration();
+                        }
+                    });
+                }
+            </script>
 
-			从&nbsp;<input id="startInput" type="text" value="广州从化汽车站"/>&nbsp;到&nbsp;<input id="endInput" type="text" value="广州火车站"/>&nbsp;&nbsp;<input type="button" value="路线规划" onclick="onDrive()"/>
-			<div id="result">&nbsp;</div>
-			<div id="places">&nbsp;</div>
+            从&nbsp;<input id="startInput" type="text" value="广州从化汽车站"/>&nbsp;到&nbsp;<input id="endInput" type="text" value="广州火车站"/>&nbsp;&nbsp;<input type="button" value="路线规划" onclick="onDrive()"/>
+            <div id="result">&nbsp;</div>
+            <div id="places">&nbsp;</div>
         </div>
-		<div class="content">
-			<div id="mapContainer" style="height: 100%;"></div>
-		</div>
+            <div class="content">
+                <div id="mapContainer" style="height: 100%;"></div>
+            </div>
     </body>
-
 </html>
 
 <script type="text/javascript">
@@ -156,9 +156,9 @@
 
                             searchNextDrivingRoute(++i);
                         } else {
-							map.clearOverlays();
-							window.core.updateMapDriveRoute(usrData, false, 0, 0);
-						}
+                            map.clearOverlays();
+                            window.core.updateMapDriveRoute(usrData, false, 0, 0);
+                        }
                     });
                 } else {
                     map.clearOverlays();
@@ -166,15 +166,26 @@
                     var viewPortPoints = [];
                     for(var i=0; i<endpoints.length; i++) {
 
-                        map.addOverlay(new BMap.Marker(endpoints[i].resultPoi.point));
-                        map.addOverlay(new BMap.Label(endpoints[i].place, {offset: new BMap.Size(0, Math.floor(Math.random()*30)), position: endpoints[i].resultPoi.point}));
+                        map.addOverlay(new BMap.Marker(endpoints[i].resultPoi.point, {
+                                                    title: endpoints[i].place,
+                                                    enableDragging: true,
+						}));
+						
+                        var prefix = endpoints[i].place.substr(0, endpoints[i].place.indexOf(':'));
+                        var label = new BMap.Label(prefix, {
+                                offset: new BMap.Size(0, 0),
+                                position: endpoints[i].resultPoi.point,
+                            });
+                        label.setTitle(endpoints[i].place);
+                        map.addOverlay(label);
 
                         viewPortPoints.push(endpoints[i].resultPoi.point);
                     }
 
+                    var colors = ['#cc3300','#33cc00','#009966','#3366ff','#9933ff','#cc00cc'];
                     for(var i=0; i<paths.length; i++) {
                         var polyline = new BMap.Polyline(paths[i], {
-                            strokeColor: (i%2 > 0) ? 'magenta' : 'green',
+                            strokeColor: colors[i%colors.length],
                             strokeOpacity: 0.8,
                         });
                         map.addOverlay(polyline);

@@ -50,16 +50,8 @@ MainWindow::MainWindow(QWidget *parent)
 #if defined (Q_OS_WIN)
     mapView->load(QUrl(qApp->applicationDirPath()+ "/map/mapPreview.html"));
 #elif defined (Q_OS_DARWIN)
-    QByteArray html;
-    QFile file(qApp->applicationDirPath()+ "/map/mapPreview_mac.html");
-    if(file.open(QIODevice::ReadOnly)) {
-        mapView->setHtml(file.readAll());
-        file.close();
-    } else {
-        QMessageBox::warning(this, "error", "map load error!");
-    }
+    mapView->load(QUrl("file:///" + qApp->applicationDirPath()+ "/map/mapPreview.html"));
 #endif
-
     mapView->show();
 
     ui->twPathList->setSelectionBehavior(QAbstractItemView::SelectRows);
