@@ -124,9 +124,12 @@ void MainWindow::updateMapDriveRoute(QString usrData, bool success, QString dist
 
 
     if(usrData.startsWith(TRACK_USR_DATA_TWPATHLIST)) {
+        if(!success) {
+            QMessageBox::warning(this, tr("ERROR"), tr("路线规划出错"));
+            return ;
+        }
         int rowNum = usrData.remove(TRACK_USR_DATA_TWPATHLIST).toInt();
-        if((success) && (rowNum >= 0)) {
-
+        if(rowNum >= 0) {
             QTableWidgetItem *disItem = ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DISTANCE);
             disItem->setToolTip(distances);
 
