@@ -47,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
-    mapView->load(QUrl("file:///" + qApp->applicationDirPath()+ "/map/mapPreview.html"));
+    mapView->load(QUrl::fromLocalFile(qApp->applicationDirPath()+ "/map/mapPreview.html"));
 
     mapView->show();
 

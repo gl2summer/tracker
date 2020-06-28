@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1029</width>
+    <width>1067</width>
     <height>635</height>
    </rect>
   </property>
@@ -36,14 +36,14 @@
        <item>
         <widget class="QWidget" name="wdMap" native="true">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
          <property name="minimumSize">
           <size>
-           <width>480</width>
+           <width>0</width>
            <height>0</height>
           </size>
          </property>
@@ -73,7 +73,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1029</width>
+     <width>1067</width>
      <height>22</height>
     </rect>
    </property>
@@ -81,25 +81,25 @@
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockWidget">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="minimumSize">
     <size>
-     <width>355</width>
-     <height>400</height>
+     <width>374</width>
+     <height>422</height>
     </size>
    </property>
    <property name="floating">
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable|QDockWidget::DockWidgetVerticalTitleBar</set>
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea</set>
+    <set>Qt::NoDockWidgetArea</set>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -133,7 +133,7 @@
      <item>
       <widget class="QGroupBox" name="gbPath">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -148,6 +148,9 @@
         <string>Path</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>1</number>
+        </property>
         <property name="leftMargin">
          <number>5</number>
         </property>
@@ -162,6 +165,11 @@
         </property>
         <item>
          <widget class="QTableWidget" name="twPathList">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
           <column>
            <property name="text">
             <string>Path</string>
@@ -188,27 +196,47 @@
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QLabel" name="label">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="text">
-             <string>Total: distance</string>
+             <string>总计：</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QLineEdit" name="leTotalDistance">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="readOnly">
              <bool>true</bool>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>duration</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QLineEdit" name="leTotalDuration">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="readOnly">
              <bool>true</bool>
             </property>
@@ -216,6 +244,11 @@
           </item>
           <item>
            <widget class="QPushButton" name="pbCopyTotal">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>复制</string>
             </property>
@@ -224,7 +257,13 @@
          </layout>
         </item>
         <item>
-         <widget class="QTextEdit" name="teTempPaths"/>
+         <widget class="QTextEdit" name="teTempPaths">
+          <property name="font">
+           <font>
+            <pointsize>12</pointsize>
+           </font>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -243,6 +282,11 @@
           </item>
           <item>
            <widget class="QPushButton" name="pbAddPathToList">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>添加路线</string>
             </property>
@@ -250,6 +294,11 @@
           </item>
           <item>
            <widget class="QPushButton" name="pbAddPathToListAndQuery">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>添加并规划路线</string>
             </property>
@@ -257,6 +306,11 @@
           </item>
           <item>
            <widget class="QPushButton" name="pbImportSites">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>批量导入站点...</string>
             </property>
