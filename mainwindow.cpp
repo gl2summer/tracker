@@ -47,11 +47,8 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
 
-#if defined (Q_OS_WIN)
-    mapView->load(QUrl(qApp->applicationDirPath()+ "/map/mapPreview.html"));
-#elif defined (Q_OS_DARWIN)
     mapView->load(QUrl("file:///" + qApp->applicationDirPath()+ "/map/mapPreview.html"));
-#endif
+
     mapView->show();
 
     ui->twPathList->setSelectionBehavior(QAbstractItemView::SelectRows);

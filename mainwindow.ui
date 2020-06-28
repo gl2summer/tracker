@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>954</width>
+    <width>1029</width>
     <height>635</height>
    </rect>
   </property>
@@ -14,13 +14,13 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
     <item>
-     <widget class="QGroupBox" name="gbPath">
+     <widget class="QGroupBox" name="gbPreview">
       <property name="title">
-       <string>Path</string>
+       <string>Preview</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="leftMargin">
         <number>5</number>
        </property>
@@ -34,108 +34,34 @@
         <number>5</number>
        </property>
        <item>
-        <widget class="QTableWidget" name="twPathList">
-         <column>
-          <property name="text">
-           <string>Path</string>
+        <widget class="QWidget" name="wdMap" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>480</width>
+           <height>0</height>
+          </size>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <property name="leftMargin">
+           <number>2</number>
           </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Distance</string>
+          <property name="topMargin">
+           <number>2</number>
           </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Duration</string>
+          <property name="rightMargin">
+           <number>2</number>
           </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Trace!</string>
+          <property name="bottomMargin">
+           <number>2</number>
           </property>
-         </column>
+         </layout>
         </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Total: distance</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="leTotalDistance">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>duration</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="leTotalDuration">
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pbCopyTotal">
-           <property name="text">
-            <string>复制</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QTextEdit" name="teTempPaths"/>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pbAddPathToList">
-           <property name="text">
-            <string>添加路线</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pbAddPathToListAndQuery">
-           <property name="text">
-            <string>添加并规划路线</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="pbImportSites">
-           <property name="text">
-            <string>批量导入站点...</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
        </item>
       </layout>
      </widget>
@@ -147,7 +73,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>954</width>
+     <width>1029</width>
      <height>22</height>
     </rect>
    </property>
@@ -162,21 +88,21 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>500</width>
-     <height>422</height>
+     <width>355</width>
+     <height>400</height>
     </size>
    </property>
    <property name="floating">
     <bool>false</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable|QDockWidget::DockWidgetVerticalTitleBar</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::RightDockWidgetArea</set>
+    <set>Qt::LeftDockWidgetArea</set>
    </property>
    <attribute name="dockWidgetArea">
-    <number>2</number>
+    <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <property name="sizePolicy">
@@ -205,11 +131,23 @@
       <number>2</number>
      </property>
      <item>
-      <widget class="QGroupBox" name="gbPreview">
-       <property name="title">
-        <string>Preview</string>
+      <widget class="QGroupBox" name="gbPath">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="title">
+        <string>Path</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
         <property name="leftMargin">
          <number>5</number>
         </property>
@@ -223,34 +161,108 @@
          <number>5</number>
         </property>
         <item>
-         <widget class="QWidget" name="wdMap" native="true">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>480</width>
-            <height>0</height>
-           </size>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_2">
-           <property name="leftMargin">
-            <number>2</number>
+         <widget class="QTableWidget" name="twPathList">
+          <column>
+           <property name="text">
+            <string>Path</string>
            </property>
-           <property name="topMargin">
-            <number>2</number>
+          </column>
+          <column>
+           <property name="text">
+            <string>Distance</string>
            </property>
-           <property name="rightMargin">
-            <number>2</number>
+          </column>
+          <column>
+           <property name="text">
+            <string>Duration</string>
            </property>
-           <property name="bottomMargin">
-            <number>2</number>
+          </column>
+          <column>
+           <property name="text">
+            <string>Trace!</string>
            </property>
-          </layout>
+          </column>
          </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Total: distance</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="leTotalDistance">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>duration</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="leTotalDuration">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbCopyTotal">
+            <property name="text">
+             <string>复制</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="teTempPaths"/>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbAddPathToList">
+            <property name="text">
+             <string>添加路线</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbAddPathToListAndQuery">
+            <property name="text">
+             <string>添加并规划路线</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pbImportSites">
+            <property name="text">
+             <string>批量导入站点...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>

@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include <QApplication>
+#include <QStyleFactory>
 #include <QTextCodec>
 
 int main(int argc, char *argv[])
@@ -12,6 +13,11 @@ int main(int argc, char *argv[])
     }
 
     QApplication a(argc, argv);
+
+#ifdef Q_OS_WIN
+    QApplication::setStyle(QStyleFactory::create("Fusion"));
+#endif
+
     MainWindow w;
     w.show();
     return a.exec();

@@ -50,6 +50,8 @@
     map.addControl(new BMap.ScaleControl());                // 添加比例尺控件
     map.addControl(new BMap.NavigationControl());           // 添加地图导航尺
     map.addControl(new BMap.OverviewMapControl());          // 添加缩略地图控件
+    map.addControl(new BMap.MapTypeControl());              // 添加地图显示类型控件
+
 /*
     (new BMap.Geolocation()).getCurrentPosition(function(geo) {
         if(geo != null) { map.panTo(geo.point); }
@@ -141,12 +143,12 @@
                     searchDrivingRoute(startPlace, endPlace, true, function(success, results) {
                         if(success) {
                             if(i == 0) {
-                                endpoints.push({place: '起点:'+startPlace, resultPoi:results.getStart()});
+                                endpoints.push({place: '起:'+startPlace, resultPoi:results.getStart()});
                             }
                             if(i < placeList.length-2) {
                                 endpoints.push({place: (i+1)+':'+endPlace, resultPoi:results.getEnd()});
                             } else {
-                                endpoints.push({place: '终点:'+endPlace, resultPoi:results.getEnd()});
+                                endpoints.push({place: '终:'+endPlace, resultPoi:results.getEnd()});
                             }
 
                             paths.push(results.getPlan(0).getRoute(0).getPath());
@@ -166,27 +168,34 @@
                     var viewPortPoints = [];
                     for(var i=0; i<endpoints.length; i++) {
 
-                        map.addOverlay(new BMap.Marker(endpoints[i].resultPoi.point, {
-                                                    title: endpoints[i].place,
-                                                    enableDragging: true,
-						}));
-						
-                        var prefix = endpoints[i].place.substr(0, endpoints[i].place.indexOf(':'));
-                        var label = new BMap.Label(prefix, {
-                                offset: new BMap.Size(0, 0),
-                                position: endpoints[i].resultPoi.point,
-                            });
-                        label.setTitle(endpoints[i].place);
-                        map.addOverlay(label);
+                        var placePrefix = endpoints[i].place.substr(0, endpoints[i].place.indexOf(':'));
+                        var label = new BMap.Label(placePrefix, {offset: new BMap.Size((placePrefix.length <= 1 ? 5:2), 3),});
+                        label.setStyle({background: 'none', color: 'floralwhite', border: 'none',});
+
+                        var marker = new BMap.Marker(endpoints[i].resultPoi.point, {
+                            title: endpoints[i].place,
+                            enableDragging: true,
+                            //raiseOnDrag: true,
+                        });
+                        marker.setLabel(label);
+
+                        map.addOverlay(marker);
 
                         viewPortPoints.push(endpoints[i].resultPoi.point);
                     }
 
-                    var colors = ['#cc3300','#33cc00','#009966','#3366ff','#9933ff','#cc00cc'];
+                    var colors = ['#cc3300','#33cc00','#3366ff','#cc00cc'];
                     for(var i=0; i<paths.length; i++) {
                         var polyline = new BMap.Polyline(paths[i], {
                             strokeColor: colors[i%colors.length],
                             strokeOpacity: 0.8,
+                            strokeWeight: 5,
+                        });
+                        polyline.addEventListener('mouseover', function(e){
+                            e.target.setStrokeWeight(8);
+                        });
+                        polyline.addEventListener('mouseout', function(e){
+                            e.target.setStrokeWeight(5);
                         });
                         map.addOverlay(polyline);
                     }
