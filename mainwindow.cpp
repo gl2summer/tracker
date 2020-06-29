@@ -12,6 +12,7 @@
 #include <QStatusBar>
 #include <QMessageBox>
 #include <QKeyEvent>
+#include <QSplitter>
 
 #define TWPATHLIST_INDEX_PATH       0
 #define TWPATHLIST_INDEX_DISTANCE   1
@@ -25,6 +26,13 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    QSplitter *mSplitter = new QSplitter(Qt::Horizontal);
+    mSplitter->addWidget(ui->gbPath);
+    mSplitter->addWidget(ui->gbPreview);
+
+    mSplitter->setStretchFactor(1, 1);
+    setCentralWidget(mSplitter);
 
     mapView = new QWebEngineView(ui->wdMap);
     ui->wdMap->layout()->addWidget(mapView);
@@ -269,4 +277,3 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     }
     return QMainWindow::eventFilter(watched, event);
 }
-
