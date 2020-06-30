@@ -78,7 +78,11 @@
             /*policy: BMAP_DRIVING_POLICY_LEAST_TIME*/
         });
 
+        let timerId = null;
+
         drivingRoute.setSearchCompleteCallback(function(results) {
+
+            clearTimeout(timerId);
 
             document.getElementById("currentResult").innerText = results.getPlan(0).getDistance() + ',' + results.getPlan(0).getDuration();
 
@@ -127,6 +131,13 @@
 
         searchStartPoint.search(startPlace);
         searchEndPoint.search(endPlace);
+
+        clearTimeout(timerId);
+        timerId = setTimeout(function() {
+            if(reslutCallback != null) {
+                reslutCallback(false);
+            }
+        }, 30000);
     }
 
     function searchDrivingRoutes(usrData, placeSet, seq, singleReslutCallback, finalReslutCallback) {
@@ -160,7 +171,6 @@
                         } else {
                             endpoints.push({place: '终:'+endPlace, resultPoi:results.getEnd()});
                         }
-
 
                         path = results.getPlan(0).getRoute(0).getPath();
                         dist = results.getPlan(0).getDistance(false);
@@ -219,6 +229,12 @@
                         e.target.setStrokeWeight(5);
                     });
                     map.addOverlay(polyline);
+
+                    var resultLabel = new BMap.Label((distances[i]/1000.0).toFixed(2), {
+                        position: paths[i][Math.ceil(paths[i].length/2)],
+                    });
+                    resultLabel.setStyle({background: 'none', color: colors[i%colors.length], border: 'none', fontSize: '15px',});
+                    map.addOverlay(resultLabel);
                 }
 
                 map.setViewport(viewPortPoints);
@@ -227,16 +243,15 @@
                 for(let i=0; i<distances.length; i++) {
                     totalDistance += distances[i];
                 }
-                var totalDistance = 0.0;
+                var totalDuration = 0.0;
                 for(let i=0; i<durations.length; i++) {
-                    totalDistance += durations[i];
+                    totalDuration += durations[i];
                 }
 
                 if(finalReslutCallback != null) {
-                    finalReslutCallback(usrData, true, totalDistance, totalDistance);
+                    finalReslutCallback(usrData, true, totalDistance, totalDuration);
                 }
-
-                document.getElementById("totalResult").innerText = (totalDistance/1000.0).toFixed(2) + '公里,' + (totalDistance/3600.0).toFixed(2) + '小时';
+                document.getElementById("totalResult").innerText = (totalDistance/1000.0).toFixed(2) + '公里,' + (totalDuration/3600.0).toFixed(2) + '小时';
             }
         }
         searchNextDrivingRoute(0);
