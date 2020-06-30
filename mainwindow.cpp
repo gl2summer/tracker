@@ -28,7 +28,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     QSplitter *mSplitter = new QSplitter(Qt::Horizontal);
-    mSplitter->addWidget(ui->gbPath);
+
+    QSplitter *lSplitter = new QSplitter(Qt::Vertical);
+    lSplitter->addWidget(ui->gbTrack);
+    lSplitter->addWidget(ui->gbTempPaths);
+
+    mSplitter->addWidget(lSplitter);
     mSplitter->addWidget(ui->gbPreview);
 
     mSplitter->setStretchFactor(1, 1);
@@ -112,12 +117,12 @@ void MainWindow::updateTotalDistanceAndDuration()
     ui->leTotalDuration->setText(QString::fromLocal8Bit("%1小时").arg(totalDur));
 }
 
-void MainWindow::updateMapDriveRoute(QString usrData, bool success, QString distances, QString durations)
+void MainWindow::updateMapDriveRoutes(QString usrData, bool success, QString totalDistance, QString totalDuration)
 {
     releaseMouse();
     releaseKeyboard();
 
-    qDebug() << usrData << "result:" << success << "distance:" << distances << "duration:" << durations;
+    qDebug() << usrData << "result:" << success << "distance:" << totalDistance << "duration:" << totalDuration;
 
 
     if(usrData.startsWith(TRACK_USR_DATA_TWPATHLIST)) {
@@ -128,27 +133,12 @@ void MainWindow::updateMapDriveRoute(QString usrData, bool success, QString dist
         int rowNum = usrData.remove(TRACK_USR_DATA_TWPATHLIST).toInt();
         if(rowNum >= 0) {
             QTableWidgetItem *disItem = ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DISTANCE);
-            disItem->setToolTip(distances);
 
-            double totalDistance = 0.0;
-            QStringList distancesList = distances.split(',');
-            qDebug() << "distancesList:" << distancesList;
-            for(QString dis : distancesList) {
-                totalDistance += dis.toDouble();
-            }
-            disItem->setText(QString::fromLocal8Bit("%1公里").arg(totalDistance/1000.0));
+            disItem->setText(QString::fromLocal8Bit("%1公里").arg(totalDistance.toDouble()/1000.0));
 
             QTableWidgetItem *durItem = ui->twPathList->item(rowNum, TWPATHLIST_INDEX_DURATION);
-            durItem->setToolTip(durations);
 
-            double totalDuration = 0.0;
-            QStringList durationList = durations.split(',');
-            qDebug() << "durationList:" << durationList;
-            for(QString dur : durationList) {
-                totalDuration += dur.toDouble();
-            }
-
-            durItem->setText(QString::fromLocal8Bit("%1小时").arg(totalDuration/3600.0));
+            durItem->setText(QString::fromLocal8Bit("%1小时").arg(totalDuration.toDouble()/3600.0));
         }
     }
 }

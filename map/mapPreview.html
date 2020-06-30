@@ -7,30 +7,40 @@
     </head>
 
     <style type="text/css">
-        html,body { height: 100%; padding: 0; margin: 0; font-size: 11px}
-        .header { height: 100px; background: #BBE8F2; position: absolute; top: 0 ; left: 0 ; width: 100%; }
-        .content { height: 100%; box-sizing: border-box; border-top:100px solid transparent; background: #D9C666;}
+        html,body { height: 100%; padding: 0; margin: 0; font-size: 12px}
+        .header { height: 100px; position: absolute; top: 0 ; left: 0 ; width: 100%; }
+        .content { height: 100%; box-sizing: border-box; border-top:100px solid transparent;}
     </style>
 
     <body>
         <div class="header">
             <script>
                 function onDrive() {
-                    map.clearOverlays();
-                    var startPlace = document.getElementById('startInput').value;
-                    var endPlace = document.getElementById('endInput').value;
-                    searchDrivingRoute(startPlace, endPlace, false, function(success, results) {
-                        if(success) {
-                            document.getElementById("places").innerText = startPlace + ', ' + endPlace;
-                            document.getElementById("result").innerText = '总共：' + results.getPlan(0).getDistance() + ', 需要：' + results.getPlan(0).getDuration();
-                        }
-                    });
+                    var twoPlaces = document.getElementById('startInput').value + ',' + document.getElementById('endInput').value;
+                    searchDrivingRoutes('', twoPlaces, ',');
                 }
             </script>
 
-            从&nbsp;<input id="startInput" type="text" value="广州从化汽车站"/>&nbsp;到&nbsp;<input id="endInput" type="text" value="广州火车站"/>&nbsp;&nbsp;<input type="button" value="路线规划" onclick="onDrive()"/>
-            <div id="result">&nbsp;</div>
-            <div id="places">&nbsp;</div>
+            <span>从&nbsp;</span>
+            <input id="startInput" type="text" value="广州从化汽车站"/>
+            <span>&nbsp;到&nbsp;</span>
+            <input id="endInput" type="text" value="广州火车站"/>
+            <span>&nbsp;&nbsp;</span>
+            <input type="button" value="路线规划" onclick="onDrive()"/>
+
+            <div>
+                <span>单次结果: </span>
+                <span id="currentResult" style='color:cyan'>&nbsp;</span>
+                <span> > </span>
+                <span id="currentPlaces">&nbsp;</span>
+            </div>
+
+            <div>
+                <span>总结果: </span>
+                <span id="totalResult" style='color:red'>&nbsp;</span>
+                <span> > </span>
+                <span id="totalPlaces">&nbsp;</span>
+            </div>
         </div>
             <div class="content">
                 <div id="mapContainer" style="height: 100%;"></div>
@@ -69,6 +79,9 @@
         });
 
         drivingRoute.setSearchCompleteCallback(function(results) {
+
+            document.getElementById("currentResult").innerText = results.getPlan(0).getDistance() + ',' + results.getPlan(0).getDuration();
+
             if(reslutCallback != null) {
                 reslutCallback(true, results);
             }
@@ -110,102 +123,135 @@
             }
         });
 
+        document.getElementById("currentPlaces").innerText = startPlace + ', ' + endPlace;
+
         searchStartPoint.search(startPlace);
         searchEndPoint.search(endPlace);
+    }
+
+    function searchDrivingRoutes(usrData, placeSet, seq, singleReslutCallback, finalReslutCallback) {
+        var placeList = placeSet.split(seq);
+
+        document.getElementById("totalPlaces").innerText = placeList;
+        document.getElementById("totalResult").innerText = '正在查询中';
+
+        var paths = [];
+        var endpoints = [];
+
+        var distances = [];
+        var durations = [];
+        function searchNextDrivingRoute(i) {
+            if(i <= placeList.length-2) {
+                var startPlace = placeList[i].trim();
+                var endPlace = placeList[i+1].trim();
+
+                searchDrivingRoute(startPlace, endPlace, true, function(success, results) {
+
+                    var path;
+                    var dist;
+                    var dura;
+
+                    if(success) {
+                        if(i == 0) {
+                            endpoints.push({place: '起:'+startPlace, resultPoi:results.getStart()});
+                        }
+                        if(i < placeList.length-2) {
+                            endpoints.push({place: (i+1)+':'+endPlace, resultPoi:results.getEnd()});
+                        } else {
+                            endpoints.push({place: '终:'+endPlace, resultPoi:results.getEnd()});
+                        }
+
+
+                        path = results.getPlan(0).getRoute(0).getPath();
+                        dist = results.getPlan(0).getDistance(false);
+                        dura = results.getPlan(0).getDuration(false);
+
+                        paths.push(path);
+                        distances.push(dist);
+                        durations.push(dura);
+
+                        searchNextDrivingRoute(++i);
+                    } else {
+                        //map.clearOverlays();
+                        if(finalReslutCallback != null) {
+                            finalReslutCallback(usrData, false, 0,0);
+                        }
+                        document.getElementById("totalResult").innerText = '查询失败';
+                    }
+
+                    if(singleReslutCallback != null) {
+                        singleReslutCallback(startPlace, endPlace, success, dist, dura);
+                    }
+                });
+            } else {
+                map.clearOverlays();
+
+                var viewPortPoints = [];
+                for(var i=0; i<endpoints.length; i++) {
+
+                    var placePrefix = endpoints[i].place.substr(0, endpoints[i].place.indexOf(':'));
+                    var label = new BMap.Label(placePrefix, {offset: new BMap.Size((placePrefix.length <= 1 ? 5:2), 3),});
+                    label.setStyle({background: 'none', color: 'floralwhite', border: 'none',});
+
+                    var marker = new BMap.Marker(endpoints[i].resultPoi.point, {
+                        title: endpoints[i].place,
+                        enableDragging: true,
+                        //raiseOnDrag: true,
+                    });
+                    marker.setLabel(label);
+
+                    map.addOverlay(marker);
+
+                    viewPortPoints.push(endpoints[i].resultPoi.point);
+                }
+
+                var colors = ['#cc3300','#33cc00','#3366ff','#cc00cc'];
+                for(var i=0; i<paths.length; i++) {
+                    var polyline = new BMap.Polyline(paths[i], {
+                        strokeColor: colors[i%colors.length],
+                        strokeOpacity: 0.8,
+                        strokeWeight: 5,
+                    });
+                    polyline.addEventListener('mouseover', function(e){
+                        e.target.setStrokeWeight(8);
+                    });
+                    polyline.addEventListener('mouseout', function(e){
+                        e.target.setStrokeWeight(5);
+                    });
+                    map.addOverlay(polyline);
+                }
+
+                map.setViewport(viewPortPoints);
+
+                var totalDistance = 0.0;
+                for(let i=0; i<distances.length; i++) {
+                    totalDistance += distances[i];
+                }
+                var totalDistance = 0.0;
+                for(let i=0; i<durations.length; i++) {
+                    totalDistance += durations[i];
+                }
+
+                if(finalReslutCallback != null) {
+                    finalReslutCallback(usrData, true, totalDistance, totalDistance);
+                }
+
+                document.getElementById("totalResult").innerText = (totalDistance/1000.0).toFixed(2) + '公里,' + (totalDistance/3600.0).toFixed(2) + '小时';
+            }
+        }
+        searchNextDrivingRoute(0);
     }
 
     new QWebChannel(window.qt.webChannelTransport, function(channel) {
         window.core = channel.objects.Mainwindow;
 
-        window.core.getMapDriveRoute.connect(function(usrData, startPlace, endPlace) {
-            searchDrivingRoute(startPlace, endPlace, true, function(success, results) {
-                window.core.updateMapDriveRoute(usrData, success ? (results.getNumPlans() > 0) : false,
-                                                         success ? results.getPlan(0).getDistance():0,
-                                                         success ? results.getPlan(0).getDuration():0);
-            });
-        });
-
         window.core.getMapDriveRoutes.connect( function(usrData, placeSet, seq) {
-            var placeList = placeSet.split(seq);
-
-            document.getElementById("places").innerText = placeList;
-            //var calculatingWindow = window.showModalDialog();
-
-            var paths = [];
-            var endpoints = [];
-
-            var distances = [];
-            var durations = [];
-            function searchNextDrivingRoute(i) {
-                if(i <= placeList.length-2) {
-                    var startPlace = placeList[i].trim();
-                    var endPlace = placeList[i+1].trim();
-                    searchDrivingRoute(startPlace, endPlace, true, function(success, results) {
-                        if(success) {
-                            if(i == 0) {
-                                endpoints.push({place: '起:'+startPlace, resultPoi:results.getStart()});
-                            }
-                            if(i < placeList.length-2) {
-                                endpoints.push({place: (i+1)+':'+endPlace, resultPoi:results.getEnd()});
-                            } else {
-                                endpoints.push({place: '终:'+endPlace, resultPoi:results.getEnd()});
-                            }
-
-                            paths.push(results.getPlan(0).getRoute(0).getPath());
-
-                            distances.push(results.getPlan(0).getDistance(false));
-                            durations.push(results.getPlan(0).getDuration(false));
-
-                            searchNextDrivingRoute(++i);
-                        } else {
-                            map.clearOverlays();
-                            window.core.updateMapDriveRoute(usrData, false, 0, 0);
-                        }
-                    });
-                } else {
-                    map.clearOverlays();
-
-                    var viewPortPoints = [];
-                    for(var i=0; i<endpoints.length; i++) {
-
-                        var placePrefix = endpoints[i].place.substr(0, endpoints[i].place.indexOf(':'));
-                        var label = new BMap.Label(placePrefix, {offset: new BMap.Size((placePrefix.length <= 1 ? 5:2), 3),});
-                        label.setStyle({background: 'none', color: 'floralwhite', border: 'none',});
-
-                        var marker = new BMap.Marker(endpoints[i].resultPoi.point, {
-                            title: endpoints[i].place,
-                            enableDragging: true,
-                            //raiseOnDrag: true,
-                        });
-                        marker.setLabel(label);
-
-                        map.addOverlay(marker);
-
-                        viewPortPoints.push(endpoints[i].resultPoi.point);
-                    }
-
-                    var colors = ['#cc3300','#33cc00','#3366ff','#cc00cc'];
-                    for(var i=0; i<paths.length; i++) {
-                        var polyline = new BMap.Polyline(paths[i], {
-                            strokeColor: colors[i%colors.length],
-                            strokeOpacity: 0.8,
-                            strokeWeight: 5,
-                        });
-                        polyline.addEventListener('mouseover', function(e){
-                            e.target.setStrokeWeight(8);
-                        });
-                        polyline.addEventListener('mouseout', function(e){
-                            e.target.setStrokeWeight(5);
-                        });
-                        map.addOverlay(polyline);
-                    }
-
-                    map.setViewport(viewPortPoints);
-
-                    window.core.updateMapDriveRoute(usrData, true, distances.toString(), durations.toString());
-                }
-            }
-            searchNextDrivingRoute(0);
+            searchDrivingRoutes(usrData, placeSet, seq,
+                function(startPlace, endPlace, success, distance, duration){
+                },
+                function(usrData, success, totalDistance, totalDuration){
+                    window.core.updateMapDriveRoutes(usrData, success, totalDistance, totalDuration);
+                });
         });
     });
 

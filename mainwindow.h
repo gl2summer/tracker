@@ -18,13 +18,13 @@ public:
     ~MainWindow();
 
 signals:
-    void getMapDriveRoute(const QString &usrData, const QString &startPlace, const QString &endPlace);
     void getMapDriveRoutes(const QString &usrData, const QString &placeSet, const QString &seq);
 
 public slots:
-    void updateMapMousePosition(QString lon, QString lat);
-    void updateMapDriveRoute(QString usrData, bool success, QString distances, QString durations);
     void queryMapDriveRoute(QString usrData, QString paths, QString seq);
+    //void updateMapDriveRoute1(QString usrData, bool success, QString distance, QString duration);
+    void updateMapDriveRoutes(QString usrData, bool success, QString totalDistance, QString totalDuration);
+    void updateMapMousePosition(QString lon, QString lat);
 
 private slots:
     void updateTotalDistanceAndDuration();
