@@ -30,7 +30,7 @@
 
             <div>
                 <span>单次结果: </span>
-                <span id="currentResult" style='color:cyan'>&nbsp;</span>
+                <span id="currentResult" style='color:darkorange'>&nbsp;</span>
                 <span> > </span>
                 <span id="currentPlaces">&nbsp;</span>
             </div>
@@ -103,6 +103,7 @@
                 if (searchStartPoint.getStatus() == BMAP_STATUS_SUCCESS) { // 判断状态是否正确
                     startPoint = results.getPoi(0).point;
                 } else {
+                    clearTimeout(timerId);
                     if(reslutCallback != null) {
                         reslutCallback(false);
                     }
@@ -117,6 +118,7 @@
                 if (searchEndPoint.getStatus() == BMAP_STATUS_SUCCESS) {
                     endPoint = results.getPoi(0).point;
                 } else {
+                    clearTimeout(timerId);
                     if(reslutCallback != null) {
                         reslutCallback(false);
                     }
@@ -146,11 +148,45 @@
         document.getElementById("totalPlaces").innerText = placeList;
         document.getElementById("totalResult").innerText = '正在查询中';
 
-        var paths = [];
-        var endpoints = [];
+        function markerPoint(position, title, tooltip) {
 
-        var distances = [];
-        var durations = [];
+            var marker = new BMap.Marker(position, {
+                title: title,
+                enableDragging: true,
+                //raiseOnDrag: true,
+            });
+
+            var toolTipLabel = new BMap.Label(tooltip, {offset: new BMap.Size((tooltip.length <= 1 ? 5:2), 3),});
+            toolTipLabel.setStyle({background: 'none', color: 'floralwhite', border: 'none',});
+
+            marker.setLabel(toolTipLabel);
+            map.addOverlay(marker);
+        }
+
+        function markerPath(path, tooltip, color) {
+            var polyline = new BMap.Polyline(path, {
+                strokeColor: color,
+                strokeOpacity: 0.8,
+                strokeWeight: 5,
+            });
+            polyline.addEventListener('mouseover', function(e){
+                e.target.setStrokeWeight(8);
+            });
+            polyline.addEventListener('mouseout', function(e){
+                e.target.setStrokeWeight(5);
+            });
+            map.addOverlay(polyline); // 添加路径
+
+            var tooltipLabel = new BMap.Label(tooltip, {
+                position: path[Math.ceil(path.length/2)],
+            });
+            tooltipLabel.setStyle({background: 'none', color: color, border: 'none', fontSize: '15px',});
+            map.addOverlay(tooltipLabel);// 添加距离
+        }
+
+        var pointsForView = [];
+        var totalDistance = 0.0;
+        var totalDuration = 0.0;
         function searchNextDrivingRoute(i) {
             if(i <= placeList.length-2) {
                 var startPlace = placeList[i].trim();
@@ -158,33 +194,36 @@
 
                 searchDrivingRoute(startPlace, endPlace, true, function(success, results) {
 
-                    var path;
-                    var dist;
-                    var dura;
-
                     if(success) {
+                        var path = results.getPlan(0).getRoute(0).getPath();
+                        var dist = results.getPlan(0).getDistance(false);
+                        var dura = results.getPlan(0).getDuration(false);
+                        var startPoint = results.getStart();
+                        var endPoint = results.getEnd();
+
+                        totalDistance += dist;
+                        totalDuration += dura;
+
                         if(i == 0) {
-                            endpoints.push({place: '起:'+startPlace, resultPoi:results.getStart()});
+                            markerPoint(startPoint.point, '起', startPlace);
+                            pointsForView.push(startPoint.point);
                         }
                         if(i < placeList.length-2) {
-                            endpoints.push({place: (i+1)+':'+endPlace, resultPoi:results.getEnd()});
+                            markerPoint(endPoint.point, i+1, endPlace);
                         } else {
-                            endpoints.push({place: '终:'+endPlace, resultPoi:results.getEnd()});
+                            markerPoint(endPoint.point, '终', endPlace);
                         }
+                        pointsForView.push(endPoint.point);
 
-                        path = results.getPlan(0).getRoute(0).getPath();
-                        dist = results.getPlan(0).getDistance(false);
-                        dura = results.getPlan(0).getDuration(false);
+                        var colors = ['#cc3300','#33cc00','#3366ff','#cc00cc'];
+                        markerPath(path, (dist/1000.0).toFixed(2)+'公里', colors[(i % colors.length)]);
 
-                        paths.push(path);
-                        distances.push(dist);
-                        durations.push(dura);
+                        map.setViewport(pointsForView);
 
                         searchNextDrivingRoute(++i);
                     } else {
-                        //map.clearOverlays();
                         if(finalReslutCallback != null) {
-                            finalReslutCallback(usrData, false, 0,0);
+                            finalReslutCallback(usrData, false, totalDistance, totalDuration);
                         }
                         document.getElementById("totalResult").innerText = '查询失败';
                     }
@@ -194,66 +233,17 @@
                     }
                 });
             } else {
-                map.clearOverlays();
-
-                var viewPortPoints = [];
-                for(var i=0; i<endpoints.length; i++) {
-
-                    var placePrefix = endpoints[i].place.substr(0, endpoints[i].place.indexOf(':'));
-                    var label = new BMap.Label(placePrefix, {offset: new BMap.Size((placePrefix.length <= 1 ? 5:2), 3),});
-                    label.setStyle({background: 'none', color: 'floralwhite', border: 'none',});
-
-                    var marker = new BMap.Marker(endpoints[i].resultPoi.point, {
-                        title: endpoints[i].place,
-                        enableDragging: true,
-                        //raiseOnDrag: true,
-                    });
-                    marker.setLabel(label);
-
-                    map.addOverlay(marker);
-
-                    viewPortPoints.push(endpoints[i].resultPoi.point);
-                }
-
-                var colors = ['#cc3300','#33cc00','#3366ff','#cc00cc'];
-                for(var i=0; i<paths.length; i++) {
-                    var polyline = new BMap.Polyline(paths[i], {
-                        strokeColor: colors[i%colors.length],
-                        strokeOpacity: 0.8,
-                        strokeWeight: 5,
-                    });
-                    polyline.addEventListener('mouseover', function(e){
-                        e.target.setStrokeWeight(8);
-                    });
-                    polyline.addEventListener('mouseout', function(e){
-                        e.target.setStrokeWeight(5);
-                    });
-                    map.addOverlay(polyline);
-
-                    var resultLabel = new BMap.Label((distances[i]/1000.0).toFixed(2), {
-                        position: paths[i][Math.ceil(paths[i].length/2)],
-                    });
-                    resultLabel.setStyle({background: 'none', color: colors[i%colors.length], border: 'none', fontSize: '15px',});
-                    map.addOverlay(resultLabel);
-                }
-
-                map.setViewport(viewPortPoints);
-
-                var totalDistance = 0.0;
-                for(let i=0; i<distances.length; i++) {
-                    totalDistance += distances[i];
-                }
-                var totalDuration = 0.0;
-                for(let i=0; i<durations.length; i++) {
-                    totalDuration += durations[i];
-                }
 
                 if(finalReslutCallback != null) {
                     finalReslutCallback(usrData, true, totalDistance, totalDuration);
                 }
+
                 document.getElementById("totalResult").innerText = (totalDistance/1000.0).toFixed(2) + '公里,' + (totalDuration/3600.0).toFixed(2) + '小时';
             }
         }
+
+        map.clearOverlays();
+
         searchNextDrivingRoute(0);
     }
 
@@ -263,6 +253,7 @@
         window.core.getMapDriveRoutes.connect( function(usrData, placeSet, seq) {
             searchDrivingRoutes(usrData, placeSet, seq,
                 function(startPlace, endPlace, success, distance, duration){
+                    window.core.updateMapDriveRoute(usrData, startPlace, endPlace, success, distance, duration);
                 },
                 function(usrData, success, totalDistance, totalDuration){
                     window.core.updateMapDriveRoutes(usrData, success, totalDistance, totalDuration);

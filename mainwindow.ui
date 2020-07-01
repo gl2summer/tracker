@@ -89,15 +89,19 @@
          <item>
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QTableWidget" name="twPathList">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
+            <widget class="QTreeWidget" name="trwPathList">
+             <property name="editTriggers">
+              <set>QAbstractItemView::DoubleClicked|QAbstractItemView::SelectedClicked</set>
+             </property>
+             <property name="dragEnabled">
+              <bool>false</bool>
+             </property>
+             <property name="alternatingRowColors">
+              <bool>true</bool>
              </property>
              <column>
               <property name="text">
-               <string>Path</string>
+               <string>Paths</string>
               </property>
              </column>
              <column>
@@ -112,7 +116,7 @@
              </column>
              <column>
               <property name="text">
-               <string>Trace!</string>
+               <string>Track it!</string>
               </property>
              </column>
             </widget>
