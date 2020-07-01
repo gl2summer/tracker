@@ -3,7 +3,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <script type='text/javascript' src='./qwebchannel.js'></script>
-        <script type='text/javascript' src='http://api.map.baidu.com/api?v=1.3&ak=gtUDcX7BrzZADD2dWMFE1RgF6IkL3t2I'></script>
+        <script type='text/javascript' src='http://api.map.baidu.com/api?v=3.0&ak=gtUDcX7BrzZADD2dWMFE1RgF6IkL3t2I'></script>
     </head>
 
     <style type="text/css">
@@ -19,9 +19,32 @@
                     var twoPlaces = document.getElementById('startInput').value + ',' + document.getElementById('endInput').value;
                     searchDrivingRoutes('', twoPlaces, ',');
                 }
+
+                window.onload = function () {
+                    document.getElementById('mapStyleList').addEventListener('change' ,function() {
+                        map.setMapStyle({style: this.value});
+                        document.getElementById('currentResult').innerText = this.value;
+                    }, false);
+                }
             </script>
 
-            <span>从&nbsp;</span>
+            <span>地图风格:</span>
+            <select id="mapStyleList">
+                <option value="normal">默认地图样式</option> //系统默认
+                <option value="light">清新蓝风格</option>
+                <option value="dark">黑夜风格</option>
+                <option value="redalert">红色警戒风格</option>
+                <option value="googlelite">精简风格</option>
+                <option value="grassgreen">自然绿风格</option>
+                <option value="midnight">午夜蓝风格</option>
+                <option value="pink">浪漫粉风格</option>
+                <option value="darkgreen">青春绿风格</option>
+                <option value="bluish">清新蓝绿风格</option>
+                <option value="grayscale">高端灰风格</option>
+                <option value="hardedge">强边界风格</option>
+            </select>
+
+            <span>&nbsp;&nbsp;测试:从&nbsp;</span>
             <input id="startInput" type="text" value="广州从化汽车站"/>
             <span>&nbsp;到&nbsp;</span>
             <input id="endInput" type="text" value="广州火车站"/>
@@ -205,17 +228,17 @@
                         totalDuration += dura;
 
                         if(i == 0) {
-                            markerPoint(startPoint.point, '起', startPlace);
+                            markerPoint(startPoint.point, startPlace, '起');
                             pointsForView.push(startPoint.point);
                         }
                         if(i < placeList.length-2) {
-                            markerPoint(endPoint.point, i+1, endPlace);
+                            markerPoint(endPoint.point, endPlace, i+1);
                         } else {
-                            markerPoint(endPoint.point, '终', endPlace);
+                            markerPoint(endPoint.point, endPlace, '终');
                         }
                         pointsForView.push(endPoint.point);
 
-                        var colors = ['#cc3300','#33cc00','#3366ff','#cc00cc'];
+                        var colors = ['red','orange','green', 'blue', 'purple', 'yellow', 'DarkRed', 'DarkOrange', 'LimeGreen', 'DarkBlue', 'Magenta', 'Gold'];
                         markerPath(path, (dist/1000.0).toFixed(2)+'公里', colors[(i % colors.length)]);
 
                         map.setViewport(pointsForView);

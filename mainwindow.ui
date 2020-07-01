@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1067</width>
-    <height>635</height>
+    <width>1195</width>
+    <height>736</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,31 +17,10 @@
    <enum>Qt::ToolButtonIconOnly</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,0,2">
+   <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,1">
     <property name="spacing">
      <number>2</number>
     </property>
-    <item>
-     <widget class="QWidget" name="widget" native="true">
-      <layout class="QHBoxLayout" name="horizontalLayout_6">
-       <property name="spacing">
-        <number>0</number>
-       </property>
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-      </layout>
-     </widget>
-    </item>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_6">
       <property name="spacing">
@@ -131,7 +110,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>总计：</string>
+                <string>合计：</string>
                </property>
               </widget>
              </item>
@@ -351,7 +330,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1067</width>
+     <width>1195</width>
      <height>22</height>
     </rect>
    </property>

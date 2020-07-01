@@ -126,10 +126,11 @@ void MainWindow::updateMapDriveRoute(QString usrData, QString startPlace, QStrin
         if(index >= 0) {
             QTreeWidgetItem *topLevelItem = ui->trwPathList->topLevelItem(index);
 
-            QString places = startPlace + ',' + endPlace;
+            QString places = startPlace + " , " + endPlace;
             QString distDisplay = success ? QString::fromLocal8Bit("%1公里").arg(QString::asprintf("%.2lf",distance.toDouble()/1000.0)) : "-";
             QString duraDisplay = success ? QString::fromLocal8Bit("%1小时").arg(QString::asprintf("%.2lf",duration.toDouble()/3600.0)) : "-";
             QTreeWidgetItem *subLevelItem = new QTreeWidgetItem({places, distDisplay, duraDisplay});
+            subLevelItem->setFlags(subLevelItem->flags() | Qt::ItemIsEditable);
             subLevelItem->setToolTip(TWPATHLIST_INDEX_PATH, places);
             topLevelItem->addChild(subLevelItem);
             ui->trwPathList->expandItem(topLevelItem);
@@ -216,7 +217,7 @@ void MainWindow::addPathToListFromFile()
             file.seek(0);
             QByteArray aline;
             do{
-                addPathToList(file.readLine(), false);
+                addPathToList(file.readLine().trimmed(), false);
             }while(file.pos() < file.size());
 
             file.close();
