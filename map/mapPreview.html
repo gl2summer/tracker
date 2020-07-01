@@ -170,18 +170,21 @@
         document.getElementById("totalPlaces").innerText = placeList;
         document.getElementById("totalResult").innerText = '正在查询中';
 
-        function markerPoint(position, title, tooltip) {
+        function markerPoint(position, tooltip, shortCut) {
 
             var marker = new BMap.Marker(position, {
-                title: title,
+                title: tooltip,
                 enableDragging: true,
                 //raiseOnDrag: true,
             });
 
-            var toolTipLabel = new BMap.Label(tooltip, {offset: new BMap.Size((tooltip.length <= 1 ? 5:2), 3),});
-            toolTipLabel.setStyle({background: 'none', color: 'floralwhite', border: 'none',});
+            var xOffset = (escape(shortCut).indexOf( "%u" ) >= 0) ? 2 //中文
+                                                                 : (shortCut.length > 1 ? 1:5); //长
+            var yOffset = (escape(shortCut).indexOf( "%u" ) >= 0) ? 1 : 3;
+            var shortLabel = new BMap.Label(shortCut, {offset: new BMap.Size(xOffset, yOffset),});
+            shortLabel.setStyle({background: 'none', color: 'floralwhite', border: 'none',});
 
-            marker.setLabel(toolTipLabel);
+            marker.setLabel(shortLabel);
             map.addOverlay(marker);
         }
 
@@ -231,7 +234,7 @@
                             pointsForView.push(startPoint.point);
                         }
                         if(i < placeList.length-2) {
-                            markerPoint(endPoint.point, endPlace, i+1);
+                            markerPoint(endPoint.point, endPlace, ''+(i+1));
                         } else {
                             markerPoint(endPoint.point, endPlace, '终');
                         }
