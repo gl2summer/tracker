@@ -23,7 +23,6 @@
                 window.onload = function () {
                     document.getElementById('mapStyleList').addEventListener('change' ,function() {
                         map.setMapStyle({style: this.value});
-                        document.getElementById('currentResult').innerText = this.value;
                     }, false);
                 }
             </script>
