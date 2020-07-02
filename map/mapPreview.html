@@ -89,8 +89,54 @@
         if(geo != null) { map.panTo(geo.point); }
     });*/
 
+    // 根据地名查询坐标点
+    function searchPointsByPlaces(places, callback) {
+        var points = [];
+
+        function doCallback() {
+            if(callback != null) {
+                callback.apply(callback, arguments);
+            }
+        }
+
+        let tid = setTimeout(function () {doCallback(false);}, 30000);
+
+        var localSearch = new BMap.LocalSearch(map, {
+
+            onSearchComplete: function(results) {
+
+                clearTimeout(tid);
+
+                var status = localSearch.getStatus();
+                if (status != BMAP_STATUS_SUCCESS) {
+                    doCallback(false);
+                    return ;
+                }
+
+                if (status == BMAP_STATUS_SUCCESS) { // 判断状态是否正确
+                   points.push(results.getPoi(0).point);
+                }
+                if(places.length <= 0) {
+
+                    doCallback(true, points);
+                    return ;
+                }
+
+                localSearch.search(places.shift());
+            }
+        });
+
+        localSearch.search(places.shift());
+    };
+
     function searchDrivingRoute(startPlace, endPlace, autoClear, reslutCallback) {
         //if((typeof startPlace != 'string') || (typeof endPlace != 'string') || (typeof reslutCallback != 'function'))
+
+        function doCallback() {
+            if(reslutCallback != null) {
+                reslutCallback.apply(reslutCallback, arguments);
+            }
+        }
 
         var drivingRoute = new BMap.DrivingRoute(map, {
             renderOptions: {
@@ -108,60 +154,25 @@
 
             document.getElementById("currentResult").innerText = results.getPlan(0).getDistance() + ',' + results.getPlan(0).getDuration();
 
-            if(reslutCallback != null) {
-                reslutCallback(true, results);
-            }
+            doCallback(true, results);
+
             if(autoClear) {
                 drivingRoute.clearResults();
             }
         });
 
-        var startPoint = null;
-        var endPoint = null;
-
-        //创建2个搜索实例
-        var searchStartPoint = new BMap.LocalSearch(map, {
-            onSearchComplete: function(results) {
-                if (searchStartPoint.getStatus() == BMAP_STATUS_SUCCESS) { // 判断状态是否正确
-                    startPoint = results.getPoi(0).point;
-                } else {
-                    clearTimeout(timerId);
-                    if(reslutCallback != null) {
-                        reslutCallback(false);
-                    }
-                }
-                if((startPoint != null) && (endPoint != null)) {
-                    drivingRoute.search(startPoint, endPoint);
-                }
-            }
-        });
-        var searchEndPoint = new BMap.LocalSearch(map, {
-            onSearchComplete: function(results) {
-                if (searchEndPoint.getStatus() == BMAP_STATUS_SUCCESS) {
-                    endPoint = results.getPoi(0).point;
-                } else {
-                    clearTimeout(timerId);
-                    if(reslutCallback != null) {
-                        reslutCallback(false);
-                    }
-                }
-                if((startPoint != null) && (endPoint != null)) {
-                    drivingRoute.search(startPoint, endPoint);
-                }
-            }
-        });
-
         document.getElementById("currentPlaces").innerText = startPlace + ', ' + endPlace;
 
-        searchStartPoint.search(startPlace);
-        searchEndPoint.search(endPlace);
+        searchPointsByPlaces([startPlace, endPlace], function(success, points) {
 
-        clearTimeout(timerId);
-        timerId = setTimeout(function() {
-            if(reslutCallback != null) {
-                reslutCallback(false);
+            if(success) {
+                drivingRoute.search(points[0], points[1]);
+
+                timerId = setTimeout(function() {doCallback(false)}, 30000);
+            } else {
+                doCallback(false);
             }
-        }, 30000);
+        });
     }
 
     function searchDrivingRoutes(usrData, placeSet, seq, singleReslutCallback, finalReslutCallback) {

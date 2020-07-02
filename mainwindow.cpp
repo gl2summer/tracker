@@ -62,7 +62,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     mapView->load(QUrl::fromLocalFile(qApp->applicationDirPath()+ "/map/mapPreview.html"));
 
-    mapView->show();
 
     ui->trwPathList->setSelectionBehavior(QAbstractItemView::SelectRows);
     QHeaderView *hevPathList = ui->trwPathList->header();
@@ -185,6 +184,7 @@ void MainWindow::addPathToList(QString paths, bool query)
     tbTrace->setAutoRaise(true);
     tbTrace->setText(QString::fromLocal8Bit("规划路线"));
     connect(tbTrace, &QToolButton::clicked, [=]() {
+        qDeleteAll(totalPathsItem->takeChildren());
         queryMapDriveRoute(flag, paths, QStringLiteral(","));
     });
     ui->trwPathList->setItemWidget(totalPathsItem, TWPATHLIST_INDEX_TRACE, tbTrace);
@@ -196,12 +196,16 @@ void MainWindow::addPathToList(QString paths, bool query)
 
 void MainWindow::removeSelectedPathFromList()
 {
-    for(int i=ui->trwPathList->topLevelItemCount()-1; i>=0; --i) {
-        if(ui->trwPathList->topLevelItem(i)->isSelected()) {
-            ui->trwPathList->takeTopLevelItem(i);
-            emit ui->trwPathList->itemChanged(nullptr, 0);
+    QList<QTreeWidgetItem *> selectedItems = ui->trwPathList->selectedItems();
+    for(QTreeWidgetItem *selectedItem : selectedItems) {
+        int index = ui->trwPathList->indexOfTopLevelItem(selectedItem);
+        if(index >= 0) {
+            qDeleteAll(selectedItem->takeChildren());
+            delete ui->trwPathList->takeTopLevelItem(index);
         }
     }
+
+    updateTotalDistanceAndDuration();
 }
 
 void MainWindow::addPathToListFromFile()
