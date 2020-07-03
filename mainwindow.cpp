@@ -138,7 +138,7 @@ void MainWindow::updateMapDriveRoute(QString usrData, QString startPlace, QStrin
     }
 }
 
-void MainWindow::updateMapDriveRoutes(QString usrData, bool success, QString totalDistance, QString totalDuration)
+void MainWindow::updateMapDriveRoutesTotalResult(QString usrData, bool success, QString totalDistance, QString totalDuration)
 {
     releaseMouse();
     releaseKeyboard();
@@ -155,6 +155,7 @@ void MainWindow::updateMapDriveRoutes(QString usrData, bool success, QString tot
             QTreeWidgetItem *topLevelItem = ui->trwPathList->topLevelItem(index);
             topLevelItem->setText(TWPATHLIST_INDEX_DISTANCE, QString::fromLocal8Bit("%1公里").arg(QString::asprintf("%.2lf",totalDistance.toDouble()/1000.0)));
             topLevelItem->setText(TWPATHLIST_INDEX_DURATION, QString::fromLocal8Bit("%1小时").arg(QString::asprintf("%.2lf",totalDuration.toDouble()/3600.0)));
+            ui->trwPathList->scrollToItem(topLevelItem);
         }
     }
 }
@@ -184,7 +185,11 @@ void MainWindow::addPathToList(QString paths, bool query)
     tbTrace->setAutoRaise(true);
     tbTrace->setText(QString::fromLocal8Bit("规划路线"));
     connect(tbTrace, &QToolButton::clicked, [=]() {
+
         qDeleteAll(totalPathsItem->takeChildren());
+        totalPathsItem->setText(TWPATHLIST_INDEX_DISTANCE, "");
+        totalPathsItem->setText(TWPATHLIST_INDEX_DURATION, "");
+
         queryMapDriveRoute(flag, paths, QStringLiteral(","));
     });
     ui->trwPathList->setItemWidget(totalPathsItem, TWPATHLIST_INDEX_TRACE, tbTrace);

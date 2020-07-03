@@ -23,7 +23,7 @@ signals:
 public slots:
     void queryMapDriveRoute(QString usrData, QString paths, QString seq);
     void updateMapDriveRoute(QString usrData, QString startPlace, QString endPlace, bool success, QString distance, QString duration);
-    void updateMapDriveRoutes(QString usrData, bool success, QString totalDistance, QString totalDuration);
+    void updateMapDriveRoutesTotalResult(QString usrData, bool success, QString totalDistance, QString totalDuration);
     void updateMapMousePosition(QString lon, QString lat);
 
 private slots:
