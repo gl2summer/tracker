@@ -129,46 +129,72 @@
         localSearch.search(places.shift());
     };
 
+
+
     function searchDrivingRoute(startPlace, endPlace, autoClear, reslutCallback) {
         //if((typeof startPlace != 'string') || (typeof endPlace != 'string') || (typeof reslutCallback != 'function'))
+
+        function searchMultiPolicyDrivingRoute(twoPoints, drivingPolicies, callback) {
+
+            //map.setViewport(twoPoints);
+
+            function doCallback() {
+                if(callback != null) {
+                    callback.apply(callback, arguments);
+                }
+            }
+
+            var drivingRoute = new BMap.DrivingRoute(map, {
+                renderOptions: {
+                        map: map,
+                        autoViewport: false,
+                    },
+            });
+
+            let policyIndex = 0;
+            let results = [];
+
+            let timerId = setTimeout(function() {doCallback(false, results)}, 30000);
+
+            drivingRoute.setSearchCompleteCallback(function(result) {
+                clearTimeout(timerId);
+
+                results.push(result);
+
+                if(autoClear) {
+                    drivingRoute.clearResults();
+                }
+                if(drivingPolicies.length <= 0) {
+                    doCallback(true, results);
+                } else {
+                    drivingRoute.setPolicy(drivingPolicies.shift());
+                    drivingRoute.search(twoPoints[0], twoPoints[1]);
+                }
+            });
+
+            drivingRoute.setPolicy(drivingPolicies.shift());
+            drivingRoute.search(twoPoints[0], twoPoints[1]);
+        }
+		
+        document.getElementById("currentPlaces").innerText = startPlace + ', ' + endPlace;
+
 
         function doCallback() {
             if(reslutCallback != null) {
                 reslutCallback.apply(reslutCallback, arguments);
             }
         }
-
-        var drivingRoute = new BMap.DrivingRoute(map, {
-            renderOptions: {
-                    map: map,
-                    autoViewport: true
-                },
-            /*policy: BMAP_DRIVING_POLICY_LEAST_TIME*/
-        });
-
-        let timerId = null;
-
-        drivingRoute.setSearchCompleteCallback(function(results) {
-
-            clearTimeout(timerId);
-
-            document.getElementById("currentResult").innerText = results.getPlan(0).getDistance() + ',' + results.getPlan(0).getDuration();
-
-            doCallback(true, results);
-
-            if(autoClear) {
-                drivingRoute.clearResults();
-            }
-        });
-
-        document.getElementById("currentPlaces").innerText = startPlace + ', ' + endPlace;
-
+		
         searchPointsByPlaces([startPlace, endPlace], function(success, points) {
-
             if(success) {
-                drivingRoute.search(points[0], points[1]);
-
-                timerId = setTimeout(function() {doCallback(false)}, 30000);
+                searchMultiPolicyDrivingRoute([points[0], points[1]]
+                                            ,[BMAP_DRIVING_POLICY_DEFAULT
+                                             ,BMAP_DRIVING_POLICY_FIRST_HIGHWAYS
+                                             ,BMAP_DRIVING_POLICY_AVOID_HIGHWAYS
+                                             ,BMAP_DRIVING_POLICY_AVOID_CONGESTION]
+                                            ,function(success, results) {
+                                                    doCallback(success, results);
+                                            });
             } else {
                 doCallback(false);
             }
@@ -221,24 +247,66 @@
         }
 
         var pointsForView = [];
-        var totalDistance = 0.0;
-        var totalDuration = 0.0;
+
+        var totalDistanceDef = 0.0;
+        var totalDurationDef = 0.0;
+        var totalDistanceMin = 0.0;
+        var totalDurationMin = 0.0;
+        var totalDistanceMax = 0.0;
+        var totalDurationMax = 0.0;
+
         function searchNextDrivingRoute(i) {
             if(i <= placeList.length-2) {
                 var startPlace = placeList[i].trim();
                 var endPlace = placeList[i+1].trim();
 
                 searchDrivingRoute(startPlace, endPlace, true, function(success, results) {
+                    if(success && (results.length > 0)) {
 
-                    if(success) {
-                        var path = results.getPlan(0).getRoute(0).getPath();
-                        var dist = results.getPlan(0).getDistance(false);
-                        var dura = results.getPlan(0).getDuration(false);
-                        var startPoint = results.getStart();
-                        var endPoint = results.getEnd();
+                        var pathDef = results[0].getPlan(0).getRoute(0).getPath();
+                        var distDef = results[0].getPlan(0).getDistance(false);
+                        var duraDef = results[0].getPlan(0).getDuration(false);
 
-                        totalDistance += dist;
-                        totalDuration += dura;
+                        var pathMin = pathDef;
+                        var distMin = distDef;
+                        var duraMin = duraDef;
+
+                        var pathMax = pathDef;
+                        var distMax = distDef;
+                        var duraMax = duraDef;
+
+                        for(let n=0; n<results.length; n++) {
+
+                            let plan = results[n].getPlan(0);
+                            let nPath = plan.getRoute(0).getPath();
+                            let nDist = plan.getDistance(false);
+                            let nDura = plan.getDuration(false);
+
+                            if(distMin > nDist) {
+                                pathMin = nPath;
+                                distMin = nDist;
+                                duraMin = nDura;
+                            }
+                            if(distMax < nDist) {
+                                pathMax = nPath;
+                                distMax = nDist;
+                                duraMax = nDura;
+                            }
+                        }
+
+                        var startPoint = results[0].getStart();
+                        var endPoint = results[0].getEnd();
+
+                        document.getElementById("currentResult").innerText = '' + (distDef/1000.0).toFixed(2) + '公里,' + (duraDef/3600.0).toFixed(2) + '小时';
+
+                        totalDistanceDef += distDef;
+                        totalDurationDef += duraDef;
+
+                        totalDistanceMin += distMin;
+                        totalDurationMin += duraMin;
+
+                        totalDistanceMax += distMax;
+                        totalDurationMax += duraMax;
 
                         if(i == 0) {
                             markerPoint(startPoint.point, startPlace, '起');
@@ -252,29 +320,33 @@
                         pointsForView.push(endPoint.point);
 
                         var colors = ['red','orange','green', 'blue', 'purple', 'yellow', 'DarkRed', 'DarkOrange', 'LimeGreen', 'DarkBlue', 'Magenta', 'Gold'];
-                        markerPath(path, (dist/1000.0).toFixed(2)+'公里', colors[(i % colors.length)]);
+                        markerPath(pathDef, (distDef/1000.0).toFixed(2)+'公里', colors[(i % colors.length)]);
 
                         map.setViewport(pointsForView);
 
                         searchNextDrivingRoute(++i);
                     } else {
                         if(finalReslutCallback != null) {
-                            finalReslutCallback(usrData, false, totalDistance, totalDuration);
+                            finalReslutCallback(usrData, false, totalDistanceDef, totalDurationDef);
                         }
                         document.getElementById("totalResult").innerText = '查询失败';
                     }
 
                     if(singleReslutCallback != null) {
-                        singleReslutCallback(startPlace, endPlace, success, dist, dura);
+                        singleReslutCallback(startPlace, endPlace, success, distDef, duraDef);
                     }
                 });
             } else {
 
                 if(finalReslutCallback != null) {
-                    finalReslutCallback(usrData, true, totalDistance, totalDuration);
+                    finalReslutCallback(usrData, true, totalDistanceDef, totalDurationDef);
                 }
 
-                document.getElementById("totalResult").innerText = (totalDistance/1000.0).toFixed(2) + '公里,' + (totalDuration/3600.0).toFixed(2) + '小时';
+                //map.setViewport(pointsForView);
+
+                document.getElementById("totalResult").innerText = 'Def: '+(totalDistanceDef/1000.0).toFixed(2) + '公里,' + (totalDurationDef/3600.0).toFixed(2) + '小时'
+                                                                 +'; Min: '+(totalDistanceMin/1000.0).toFixed(2) + '公里,' + (totalDurationMin/3600.0).toFixed(2) + '小时'
+                                                                 +'; Max: '+(totalDistanceMax/1000.0).toFixed(2) + '公里,' + (totalDurationMax/3600.0).toFixed(2) + '小时';
             }
         }
 
@@ -292,7 +364,7 @@
                     window.core.updateMapDriveRoute(usrData, startPlace, endPlace, success, distance, duration);
                 },
                 function(usrData, success, totalDistance, totalDuration){
-                    window.core.updateMapDriveRoutesTotalResult(usrData, success, totalDistance, totalDuration);
+                    window.core.updateMapDriveRoutes(usrData, success, totalDistance, totalDuration);
                 });
         });
     });

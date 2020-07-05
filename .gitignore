@@ -2,4 +2,4 @@
 *.pro.user
 output/
 *.o
-deploy/
+deploy/tracker.app
