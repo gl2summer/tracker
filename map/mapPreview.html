@@ -185,9 +185,6 @@
 
             searchNext();
         }
-		
-        document.getElementById("currentPlaces").innerText = startPlace + ', ' + endPlace;
-
 
         function doCallback() {
             if(reslutCallback != null) {
@@ -307,6 +304,7 @@
                         var startPoint = results[0].getStart();
                         var endPoint = results[0].getEnd();
 
+                        document.getElementById("currentPlaces").innerText = startPlace + ', ' + endPlace;
                         document.getElementById("currentResult").innerText = '' + (distDef/1000.0).toFixed(2) + '公里,' + (duraDef/3600.0).toFixed(2) + '小时';
 
                         totalDistanceDef += distDef;
