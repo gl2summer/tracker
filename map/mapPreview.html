@@ -61,7 +61,11 @@
                 <span>总结果: </span>
                 <span id="totalResult" style='color:red'>&nbsp;</span>
                 <span> > </span>
-                <span id="totalPlaces">&nbsp;</span>
+                <div id="totalPlaces">
+                    <span id="completedPlaces">&nbsp;</span>
+                    <span id="currentTwoPlaces" style='color:red'>&nbsp;</span>
+                    <span id="uncompletedPlaces">&nbsp;</span>
+                </div>
             </div>
         </div>
             <div class="content">
@@ -211,7 +215,6 @@
     function searchDrivingRoutes(usrData, placeSet, seq, singleReslutCallback, finalReslutCallback) {
         var placeList = placeSet.split(seq);
 
-        document.getElementById("totalPlaces").innerText = placeList;
         document.getElementById("totalResult").innerText = '正在查询中';
 
         function markerPoint(position, tooltip, shortCut) {
@@ -266,6 +269,19 @@
             if(i <= placeList.length-2) {
                 var startPlace = placeList[i].trim();
                 var endPlace = placeList[i+1].trim();
+
+                document.getElementById("completedPlaces").innerText = ' ';
+                document.getElementById("currentTwoPlaces").innerText = ' ';
+                document.getElementById("uncompletedPlaces").innerText = ' ';
+                for(let j=0; j<placeList.length; j++) {
+                    if(j<i) {
+                        document.getElementById("completedPlaces").innerText += placeList[j] + '->';
+                    } else if(j>i+1) {
+                        document.getElementById("uncompletedPlaces").innerText += placeList[j] + '->';
+                    } else {
+                        document.getElementById("currentTwoPlaces").innerText += placeList[j] + '->';
+                    }
+                }
 
                 searchDrivingRoute(startPlace, endPlace, true, function(success, results) {
                     if(success && (results.length > 0)) {
