@@ -27,7 +27,8 @@ echo.
 echo iss compiling...
 REM compil32 /cc ".\issproj.iss"
 iscc /Qp /O".\setup\" /F"tracker_%version%_setup" /DMyAppVersion="%version%" ".\issproj.iss"
- 
+
+set run=Y
 set /p run=Run the setup(Y/N)?
 if "%run%"=="Y" (
   goto runsetup

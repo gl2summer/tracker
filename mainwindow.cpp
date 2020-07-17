@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QKeyEvent>
 #include <QSplitter>
+#include <QProgressBar>
 
 #define TWPATHLIST_INDEX_PATH       0
 #define TWPATHLIST_INDEX_DISTANCE   1
@@ -39,6 +40,20 @@ MainWindow::MainWindow(QWidget *parent)
     mSplitter->setStretchFactor(1, 1);
     setCentralWidget(mSplitter);
 
+
+    QProgressBar *loadingProgress = new QProgressBar(this);
+    loadingProgress->setObjectName("mapLoading");
+    loadingProgress->setFixedSize(100, 15);
+    loadingProgress->setAlignment(Qt::AlignCenter);
+    QLabel *locationLabel = new QLabel(this);
+    locationLabel->setObjectName("location");
+    locationLabel->setAlignment(Qt::AlignCenter);
+
+    QStatusBar *sbar = statusBar();
+    sbar->addWidget(loadingProgress);
+    sbar->addWidget(locationLabel);
+
+
     mapView = new QWebEngineView(ui->wdMap);
     ui->wdMap->layout()->addWidget(mapView);
 
@@ -49,6 +64,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mapView, &QWebEngineView::loadStarted, [=](){
         grabMouse(Qt::WaitCursor);
         grabKeyboard();
+    });
+
+    connect(mapView, &QWebEngineView::loadProgress, [=](int progress){
+        loadingProgress->setValue(progress);
+        if(progress >= 100) {
+            releaseMouse();
+            releaseKeyboard();
+        }
     });
 
     connect(mapView, &QWebEngineView::loadFinished, [=](bool ok){
@@ -79,13 +102,6 @@ MainWindow::MainWindow(QWidget *parent)
         QClipboard *clipBoard = QApplication::clipboard();
         clipBoard->setText(distanceAndDuration);
     });
-
-    QStatusBar *sbar = statusBar();
-
-    QLabel *locationLabel = new QLabel(this);
-    locationLabel->setObjectName("location");
-    locationLabel->setAlignment(Qt::AlignHCenter);
-    sbar->addWidget(locationLabel);
 }
 
 MainWindow::~MainWindow()

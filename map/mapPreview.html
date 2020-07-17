@@ -93,18 +93,25 @@
     function searchPointsByPlaces(places, callback) {
         var points = [];
 
+        let tid = null;
+
         function doCallback() {
+            clearTimeout(tid);
+
             if(callback != null) {
                 callback.apply(callback, arguments);
             }
         }
 
-        let tid = setTimeout(function () {doCallback(false);}, 30000);
+        function searchNext() {
+            clearTimeout(tid);
+            tid = setTimeout(function () {doCallback(false);}, 30000);
+            localSearch.search(places.shift());
+        }
 
         var localSearch = new BMap.LocalSearch(map, {
 
             onSearchComplete: function(results) {
-
                 clearTimeout(tid);
 
                 var status = localSearch.getStatus();
@@ -122,11 +129,11 @@
                     return ;
                 }
 
-                localSearch.search(places.shift());
+                searchNext();
             }
         });
 
-        localSearch.search(places.shift());
+        searchNext();
     };
 
 
@@ -138,12 +145,6 @@
 
             //map.setViewport(twoPoints);
 
-            function doCallback() {
-                if(callback != null) {
-                    callback.apply(callback, arguments);
-                }
-            }
-
             var drivingRoute = new BMap.DrivingRoute(map, {
                 renderOptions: {
                         map: map,
@@ -151,14 +152,25 @@
                     },
             });
 
-            let policyIndex = 0;
-            let results = [];
+            let timerId = null;
 
-            let timerId = setTimeout(function() {doCallback(false, results)}, 30000);
-
-            drivingRoute.setSearchCompleteCallback(function(result) {
+            function doCallback() {
                 clearTimeout(timerId);
 
+                if(callback != null) {
+                    callback.apply(callback, arguments);
+                }
+            }
+
+            function searchNext() {
+                clearTimeout(timerId);
+                timerId = setTimeout(function() {doCallback(false, results)}, 30000);
+                drivingRoute.setPolicy(drivingPolicies.shift());
+                drivingRoute.search(twoPoints[0], twoPoints[1]);
+            }
+
+            let results = [];
+            drivingRoute.setSearchCompleteCallback(function(result) {
                 results.push(result);
 
                 if(autoClear) {
@@ -167,13 +179,11 @@
                 if(drivingPolicies.length <= 0) {
                     doCallback(true, results);
                 } else {
-                    drivingRoute.setPolicy(drivingPolicies.shift());
-                    drivingRoute.search(twoPoints[0], twoPoints[1]);
+                    searchNext();
                 }
             });
 
-            drivingRoute.setPolicy(drivingPolicies.shift());
-            drivingRoute.search(twoPoints[0], twoPoints[1]);
+            searchNext();
         }
 		
         document.getElementById("currentPlaces").innerText = startPlace + ', ' + endPlace;
