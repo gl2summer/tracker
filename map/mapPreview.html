@@ -194,11 +194,12 @@
 		
         searchPointsByPlaces([startPlace, endPlace], function(success, points) {
             if(success) {
+                var policies = [BMAP_DRIVING_POLICY_DEFAULT, BMAP_DRIVING_POLICY_FIRST_HIGHWAYS, BMAP_DRIVING_POLICY_AVOID_CONGESTION];
+                if(map.getDistance(points[0], points[1]) <= 100000) { //if less than 100km
+                  policies.push(BMAP_DRIVING_POLICY_AVOID_HIGHWAYS);
+                }
                 searchMultiPolicyDrivingRoute([points[0], points[1]]
-                                            ,[BMAP_DRIVING_POLICY_DEFAULT
-                                             ,BMAP_DRIVING_POLICY_FIRST_HIGHWAYS
-                                             ,BMAP_DRIVING_POLICY_AVOID_HIGHWAYS
-                                             ,BMAP_DRIVING_POLICY_AVOID_CONGESTION]
+                                            ,policies
                                             ,function(success, results) {
                                                     doCallback(success, results);
                                             });
