@@ -14,6 +14,7 @@
 #include <QKeyEvent>
 #include <QSplitter>
 #include <QProgressBar>
+#include <QSettings>
 
 #define TWPATHLIST_INDEX_PATH       0
 #define TWPATHLIST_INDEX_DISTANCE   1
@@ -75,9 +76,6 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     connect(mapView, &QWebEngineView::loadFinished, [=](bool ok){
-        releaseMouse();
-        releaseKeyboard();
-
         if(!ok) {
             mapView->reload();
         }
@@ -102,10 +100,19 @@ MainWindow::MainWindow(QWidget *parent)
         QClipboard *clipBoard = QApplication::clipboard();
         clipBoard->setText(distanceAndDuration);
     });
+
+
+    QSettings setting("hao", "tracker");
+
+    ui->teTempPaths->setText(setting.value("Places").toString());
 }
 
 MainWindow::~MainWindow()
 {
+    QSettings setting("hao", "tracker");
+
+    setting.setValue("Places", ui->teTempPaths->toPlainText());
+
     delete ui;
 }
 
