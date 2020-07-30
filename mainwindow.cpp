@@ -222,6 +222,20 @@ void MainWindow::addPathToList(QString paths, bool query)
     }
 }
 
+
+QStringList MainWindow::getPathsFromList()
+{
+    QStringList paths;
+
+    int topLevelItemCount = ui->trwPathList->topLevelItemCount();
+    for(int i=0; i<topLevelItemCount; i++) {
+        QTreeWidgetItem *topLevelItem = ui->trwPathList->topLevelItem(i);
+        paths.append(topLevelItem->text(TWPATHLIST_INDEX_PATH).trimmed());
+    }
+
+    return paths;
+}
+
 void MainWindow::removeSelectedPathFromList()
 {
     QList<QTreeWidgetItem *> selectedItems = ui->trwPathList->selectedItems();
@@ -249,22 +263,33 @@ void MainWindow::addPathToListFromFile()
             file.seek(0);
             QByteArray aline;
             do{
-                addPathToList(file.readLine().trimmed(), false);
+                addPathToList(QString::fromUtf8(file.readLine()).trimmed(), false);
             }while(file.pos() < file.size());
 
             file.close();
         }
     }
 }
-void MainWindow::on_actionImportPathPoints_triggered()
+
+void MainWindow::savePathToListToFile()
 {
-    addPathToListFromFile();
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save as"));
+    if(!fileName.isEmpty())
+    {
+        QFile file(fileName);
+        if(file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+
+            file.seek(0);
+            QStringList paths = getPathsFromList();
+            for(QString path : paths) {
+                file.write(path.toUtf8() + "\r\n");
+            }
+
+            file.close();
+        }
+    }
 }
 
-void MainWindow::on_actionExportPathDistances_triggered()
-{
-
-}
 
 void MainWindow::on_pbAddPathToList_clicked()
 {
@@ -297,6 +322,11 @@ void MainWindow::on_pbImportSites_clicked()
     addPathToListFromFile();
 }
 
+void MainWindow::on_pbExportSites_clicked()
+{
+    savePathToListToFile();
+}
+
 bool MainWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if((watched == ui->trwPathList) && (event->type() == QEvent::KeyRelease)) {
@@ -309,3 +339,4 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     }
     return QMainWindow::eventFilter(watched, event);
 }
+

@@ -29,18 +29,18 @@ public slots:
 private slots:
     void updateTotalDistanceAndDuration();
     void addPathToList(QString paths, bool query=false);
+    QStringList getPathsFromList();
     void removeSelectedPathFromList();
     void addPathToListFromFile();
-
-    void on_actionImportPathPoints_triggered();
-
-    void on_actionExportPathDistances_triggered();
+    void savePathToListToFile();
 
     void on_pbAddPathToList_clicked();
 
     void on_pbImportSites_clicked();
 
     void on_pbAddPathToListAndQuery_clicked();
+
+    void on_pbExportSites_clicked();
 
 private:
     Ui::MainWindow *ui;
