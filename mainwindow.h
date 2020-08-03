@@ -50,7 +50,7 @@ private:
 
     QWebEngineView *mapView;
 
-    Presenter* presenter;
+    Presenter *presenter;
 
     // QObject interface
 public:
