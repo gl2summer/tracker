@@ -19,10 +19,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    model.cpp \
+    presenter.cpp
 
 HEADERS += \
-    mainwindow.h
+    imodel.h \
+    ipresenter.h \
+    iview.h \
+    mainwindow.h \
+    model.h \
+    presenter.h
 
 FORMS += \
     mainwindow.ui

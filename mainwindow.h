@@ -1,6 +1,9 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "iview.h"
+#include "presenter.h"
+
 #include <QMainWindow>
 
 #include <QWebEngineView>
@@ -9,7 +12,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
+class MainWindow : public QMainWindow, public IView
 {
     Q_OBJECT
 
@@ -47,8 +50,14 @@ private:
 
     QWebEngineView *mapView;
 
+    Presenter* presenter;
+
     // QObject interface
 public:
     bool eventFilter(QObject *watched, QEvent *event) override;
+
+    // IView interface
+public:
+    void showMessage(QString message) override;
 };
 #endif // MAINWINDOW_H

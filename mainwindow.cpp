@@ -1,4 +1,5 @@
 ﻿#include "mainwindow.h"
+#include "model.h"
 #include "ui_mainwindow.h"
 #include <QDir>
 #include <QDebug>
@@ -28,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    presenter = new Presenter(this, new Model());
 
     QSplitter *mSplitter = new QSplitter(Qt::Horizontal);
 
@@ -101,17 +104,12 @@ MainWindow::MainWindow(QWidget *parent)
         clipBoard->setText(distanceAndDuration);
     });
 
-
-    QSettings setting("hao", "tracker");
-
-    ui->teTempPaths->setText(setting.value("Places").toString());
+    ui->teTempPaths->setText(presenter->getParamter("Places").toString());
 }
 
 MainWindow::~MainWindow()
 {
-    QSettings setting("hao", "tracker");
-
-    setting.setValue("Places", ui->teTempPaths->toPlainText());
+    presenter->setParameter("Places", ui->teTempPaths->toPlainText());
 
     delete ui;
 }
@@ -340,3 +338,8 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
     return QMainWindow::eventFilter(watched, event);
 }
 
+
+void MainWindow::showMessage(QString message)
+{
+    qDebug() << "show message: " << message;
+}
