@@ -20,8 +20,11 @@ QVariant Model::getParamter(QString key)
 }
 
 
-void Model::setParameter(QString key, QVariant v)
+void Model::setParameter(QString key, QVariant v, std::function<void(Result)> cb)
 {
     QSettings setting("hao", "tracker");
     setting.setValue(key, v);
+    if(cb != nullptr) {
+        cb(SUCCESS);
+    }
 }

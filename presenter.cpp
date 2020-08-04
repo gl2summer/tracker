@@ -14,6 +14,7 @@ QVariant Presenter::getParamter(QString key)
 
 void Presenter::setParameter(QString key, QVariant v)
 {
-    model->setParameter(key, v);
-    view->showMessage("Parameter("+key+") saved!");
+    model->setParameter(key, v, [=](IModel::Result){
+        view->showMessage("Parameter("+key+") saved!");
+    });
 }
